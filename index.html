@@ -361,12 +361,25 @@
     </div>
     <div class="scoreboard-actions">
       <button id="scoreboard-back-btn" class="ghost-btn">← Back</button>
-      <button id="clear-scoreboard-btn" class="ghost-btn danger">Clear Scoreboard</button>
     </div>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCQXMOIvNc4kwK48XEvOfhQblhLrl5LljA",
+  authDomain: "quizrush-gk.firebaseapp.com",
+  projectId: "quizrush-gk",
+  storageBucket: "quizrush-gk.firebasestorage.app",
+  messagingSenderId: "801536406261",
+  appId: "1:801536406261:web:c57731214f85083a14cbbc"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
 // ---------------- Question bank ----------------
 const BANK = [
   {cat:"Pakistan Studies", diff:"easy", q:"When did Pakistan come into existence?", opts:["14 August 1947","15 August 1947","23 March 1940","27 October 1947"], correct:"14 August 1947"},
@@ -790,37 +803,39 @@ const BANK = [
   {"cat": "General Knowledge", "diff": "easy", "q": "What is the standard duration of a football (soccer) match, excluding stoppage time?", "opts": ["90 minutes", "60 minutes", "80 minutes", "120 minutes"], "correct": "90 minutes"},
 ];
 
-// ---------------- Scoreboard (persistent via localStorage) ----------------
-const SCOREBOARD_KEY = 'fiaCbtScoreboardV1';
-
-function loadScoreboard() {
+// ---------------- Scoreboard (synced live via Firebase Firestore) ----------------
+async function saveScoreboardEntry(entry) {
   try {
-    const raw = localStorage.getItem(SCOREBOARD_KEY);
-    return raw ? JSON.parse(raw) : [];
+    await addDoc(collection(db, "scores"), entry);
   } catch (e) {
-    return [];
+    console.error("Failed to save score:", e);
   }
 }
 
-function saveScoreboardEntry(entry) {
-  const board = loadScoreboard();
-  board.push(entry);
-  localStorage.setItem(SCOREBOARD_KEY, JSON.stringify(board));
-}
-
-function renderScoreboard() {
-  const board = loadScoreboard().slice().sort((a, b) => {
-    if (b.pct !== a.pct) return b.pct - a.pct;
-    return b.score - a.score;
-  });
+async function renderScoreboard() {
   const body = document.getElementById('scoreboard-body');
   const empty = document.getElementById('scoreboard-empty');
   const table = document.getElementById('scoreboard-table');
   body.innerHTML = '';
+  table.style.display = 'none';
+  empty.style.display = 'block';
+  empty.textContent = 'Loading scoreboard...';
+
+  let board = [];
+  try {
+    const q = query(collection(db, "scores"), orderBy("pct", "desc"), limit(200));
+    const snap = await getDocs(q);
+    snap.forEach(doc => board.push(doc.data()));
+  } catch (e) {
+    console.error("Failed to load scoreboard:", e);
+    empty.textContent = 'Could not load scoreboard — check your internet connection.';
+    return;
+  }
+
+  board.sort((a, b) => (b.pct - a.pct) || (b.score - a.score));
 
   if (board.length === 0) {
-    table.style.display = 'none';
-    empty.style.display = 'block';
+    empty.textContent = 'No attempts yet — finish a quiz to show up here.';
     return;
   }
   table.style.display = 'table';
@@ -839,21 +854,15 @@ function renderScoreboard() {
 }
 
 document.getElementById('view-scoreboard-btn').addEventListener('click', () => {
-  renderScoreboard();
   showScreen('scoreboard-screen');
+  renderScoreboard();
 });
 document.getElementById('end-scoreboard-btn').addEventListener('click', () => {
-  renderScoreboard();
   showScreen('scoreboard-screen');
+  renderScoreboard();
 });
 document.getElementById('scoreboard-back-btn').addEventListener('click', () => {
   showScreen('start-screen');
-});
-document.getElementById('clear-scoreboard-btn').addEventListener('click', () => {
-  if (confirm('Clear all saved scoreboard history on this device? This cannot be undone.')) {
-    localStorage.removeItem(SCOREBOARD_KEY);
-    renderScoreboard();
-  }
 });
 
 // ---------------- State ----------------

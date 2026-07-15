@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scores/{scoreId} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 30 &&
+        request.resource.data.difficulty in ['easy', 'medium', 'hard'] &&
+        request.resource.data.region in ['pakistan', 'international'] &&
+        request.resource.data.score is int &&
+        request.resource.data.total is int &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= request.resource.data.total &&
+        request.resource.data.pct is int &&
+        request.resource.data.pct >= 0 &&
+        request.resource.data.pct <= 100;
+      allow update, delete: if false;
+    }
+  }
+}
