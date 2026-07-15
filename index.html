@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIA Assistant CBT Challenge</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top, #1b2440 0%, #0b0e1a 65%);
+    color: #eef1f8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .screen { width: 100%; max-width: 1000px; display: none; }
+  .screen.active { display: block; }
+
+  /* ---------- Shared card look ---------- */
+  .card {
+    background: #141a30;
+    border: 1px solid #262f52;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  }
+
+  /* ---------- Shared buttons ---------- */
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid #303a63;
+    color: #c3c9e0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .ghost-btn:hover { border-color: #7c8cff; color: #eef1f8; }
+  .ghost-btn.danger:hover { border-color: #e74c3c; color: #ff9c94; }
+
+  /* ---------- Start screen ---------- */
+  #start-screen .card { padding: 40px; text-align: center; position: relative; }
+  .top-actions { position: absolute; top: 20px; right: 20px; }
+  .title {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #7c8cff, #57e0c9);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 6px;
+  }
+  .subtitle { color: #9aa3c4; margin-bottom: 28px; font-size: 0.95rem; }
+  label.field-label { display: block; text-align: left; font-size: 0.85rem; color: #9aa3c4; margin-bottom: 8px; font-weight: 600; }
+  #player-name {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #303a63;
+    background: #0e1326;
+    color: #eef1f8;
+    font-size: 1rem;
+    margin-bottom: 28px;
+  }
+  #player-name:focus { outline: none; border-color: #7c8cff; }
+
+  .region-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .region-card {
+    background: #0e1326;
+    border: 2px solid #262f52;
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+  }
+  .region-card:hover { border-color: #4a56a0; transform: translateY(-2px); }
+  .region-card.selected { border-color: #57e0c9; background: #10222a; box-shadow: 0 0 0 3px rgba(87,224,201,0.2); }
+  .region-name { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+  .region-desc { font-size: 0.78rem; color: #c3c9e0; line-height: 1.4; }
+
+  .difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .diff-card {
+    background: #0e1326;
+    border: 2px solid #262f52;
+    border-radius: 14px;
+    padding: 18px 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+  }
+  .diff-card:hover { border-color: #4a56a0; transform: translateY(-2px); }
+  .diff-card.selected { border-color: #7c8cff; background: #1a2144; box-shadow: 0 0 0 3px rgba(124,140,255,0.25); }
+  .diff-name { font-weight: 800; font-size: 1.05rem; margin-bottom: 4px; }
+  .diff-easy .diff-name { color: #57e0a0; }
+  .diff-medium .diff-name { color: #f4c95d; }
+  .diff-hard .diff-name { color: #ff7676; }
+  .diff-count { font-size: 0.8rem; color: #9aa3c4; margin-bottom: 8px; font-weight: 600; }
+  .diff-desc { font-size: 0.8rem; color: #c3c9e0; line-height: 1.4; }
+
+  #start-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #7c8cff, #57e0c9);
+    color: #0b0e1a;
+    font-weight: 800;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+  }
+  #start-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #start-btn:not(:disabled):hover { transform: translateY(-1px); }
+
+  /* ---------- Quiz screen ---------- */
+  .quiz-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 720px) {
+    .quiz-layout { grid-template-columns: 1fr; }
+    .difficulty-grid { grid-template-columns: 1fr; }
+    .region-grid { grid-template-columns: 1fr; }
+  }
+
+  .progress-bar-track {
+    width: 100%;
+    height: 8px;
+    background: #0e1326;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7c8cff, #57e0c9);
+    transition: width 0.3s ease;
+  }
+
+  .question-card { padding: 30px; }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .q-count { font-size: 0.8rem; color: #9aa3c4; font-weight: 700; letter-spacing: 0.5px; }
+  .q-category { font-size: 0.75rem; color: #7c8cff; background: #1a2144; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+  .q-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 24px; line-height: 1.5; }
+
+  .options { display: flex; flex-direction: column; gap: 12px; }
+  .option {
+    padding: 15px 18px;
+    border-radius: 12px;
+    border: 2px solid #262f52;
+    background: #0e1326;
+    color: #eef1f8;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .option:hover:not(.locked) { border-color: #4a56a0; background: #131a35; }
+  .option.correct-flash { border-color: #2ecc71; background: rgba(46,204,113,0.18); color: #7bf0ac; }
+  .option.wrong-flash { border-color: #e74c3c; background: rgba(231,76,60,0.18); color: #ff9c94; }
+  .option.locked { cursor: default; opacity: 0.75; }
+  .option.locked:not(.correct-flash):not(.wrong-flash) { opacity: 0.4; }
+
+  #next-btn {
+    display: none;
+    margin-top: 22px;
+    padding: 13px 22px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #7c8cff, #57e0c9);
+    color: #0b0e1a;
+    font-weight: 800;
+    cursor: pointer;
+    float: right;
+  }
+
+  /* ---------- Score panel (right side) ---------- */
+  .score-panel { padding: 28px 22px; text-align: center; height: fit-content; }
+  .score-panel .player { font-weight: 800; font-size: 1.1rem; margin-bottom: 2px; }
+  .score-panel .diff-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+    letter-spacing: 0.5px;
+  }
+  .badge-easy { background: rgba(87,224,160,0.15); color: #57e0a0; }
+  .badge-medium { background: rgba(244,201,93,0.15); color: #f4c95d; }
+  .badge-hard { background: rgba(255,118,118,0.15); color: #ff7676; }
+
+  .score-big { font-size: 3rem; font-weight: 900; line-height: 1; background: linear-gradient(90deg, #7c8cff, #57e0c9); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .score-sub { color: #9aa3c4; font-size: 0.85rem; margin-top: 4px; margin-bottom: 22px; }
+
+  .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid #262f52; font-size: 0.85rem; }
+  .stat-row span:first-child { color: #9aa3c4; }
+  .stat-row span:last-child { font-weight: 700; }
+  .stat-correct span:last-child { color: #57e0a0; }
+  .stat-wrong span:last-child { color: #ff7676; }
+
+  /* ---------- End screen ---------- */
+  #end-screen .card { padding: 40px; }
+  .result-header { text-align: center; margin-bottom: 30px; }
+  .result-score { font-size: 3.2rem; font-weight: 900; }
+  .result-pct { font-size: 1.2rem; color: #9aa3c4; margin-top: 4px; }
+  .result-msg { margin-top: 14px; font-size: 1.05rem; font-weight: 700; }
+
+  .review-item { border-top: 1px solid #262f52; padding: 16px 0; }
+  .review-q { font-weight: 700; margin-bottom: 10px; }
+  .review-ans { font-size: 0.9rem; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+  .review-your-correct { background: rgba(46,204,113,0.15); color: #7bf0ac; }
+  .review-your-wrong { background: rgba(231,76,60,0.15); color: #ff9c94; }
+  .review-correct-answer { background: rgba(46,204,113,0.15); color: #7bf0ac; }
+
+  .end-actions { display: flex; gap: 12px; margin-top: 24px; }
+  .end-actions button { flex: 1; }
+  #restart-btn {
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #7c8cff, #57e0c9);
+    color: #0b0e1a;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  /* ---------- Scoreboard screen ---------- */
+  #scoreboard-screen .card { padding: 40px; }
+  .scoreboard-header { text-align: center; margin-bottom: 24px; }
+  #scoreboard-table-wrap { max-height: 420px; overflow-y: auto; overflow-x: auto; margin-bottom: 22px; }
+  .scoreboard-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .scoreboard-table th, .scoreboard-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #262f52; white-space: nowrap; }
+  .scoreboard-table th { color: #9aa3c4; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  #scoreboard-empty { text-align: center; color: #9aa3c4; padding: 30px 0; display: none; }
+  .scoreboard-actions { display: flex; gap: 12px; }
+  .scoreboard-actions button { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ============ START SCREEN ============ -->
+<div id="start-screen" class="screen active">
+  <div class="card">
+    <div class="top-actions"><button id="view-scoreboard-btn" class="ghost-btn">🏆 Scoreboard</button></div>
+    <div class="title">FIA Assistant CBT Challenge</div>
+    <div class="subtitle">General Knowledge practice test — pick your difficulty and go</div>
+
+    <label class="field-label" for="player-name">Your Name</label>
+    <input type="text" id="player-name" placeholder="Enter your name" maxlength="30">
+
+    <label class="field-label">Choose Question Set</label>
+    <div class="region-grid">
+      <div class="region-card" data-region="pakistan">
+        <div class="region-name">🇵🇰 Pakistan-Focused</div>
+        <div class="region-desc">Includes Pakistan Studies & Govt questions — matches the actual FIA CBT syllabus.</div>
+      </div>
+      <div class="region-card" data-region="international">
+        <div class="region-name">🌍 International</div>
+        <div class="region-desc">Universal General Knowledge only — no Pakistan-specific Studies/Govt questions.</div>
+      </div>
+    </div>
+
+    <label class="field-label">Choose Difficulty</label>
+    <div class="difficulty-grid">
+      <div class="diff-card diff-easy" data-difficulty="easy" data-count="15">
+        <div class="diff-name">EASY</div>
+        <div class="diff-count">15 Questions</div>
+        <div class="diff-desc">Warm-up round. Straightforward, well-known facts — a good first pass before the real thing.</div>
+      </div>
+      <div class="diff-card diff-medium" data-difficulty="medium" data-count="30">
+        <div class="diff-name">MEDIUM</div>
+        <div class="diff-count">30 Questions</div>
+        <div class="diff-desc">Balanced mix of easy and trickier questions across every subject — closer to real exam pressure.</div>
+      </div>
+      <div class="diff-card diff-hard" data-difficulty="hard" data-count="50">
+        <div class="diff-name">HARD</div>
+        <div class="diff-count">50 Questions</div>
+        <div class="diff-desc">Full-length mock CBT. A random 50 drawn from the whole bank, including the toughest questions — closest to real exam pressure.</div>
+      </div>
+    </div>
+
+    <button id="start-btn" disabled>Start Quiz</button>
+  </div>
+</div>
+
+<!-- ============ QUIZ SCREEN ============ -->
+<div id="quiz-screen" class="screen">
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <div class="quiz-layout">
+    <div class="card question-card">
+      <div class="q-meta">
+        <span class="q-count" id="q-count"></span>
+        <span class="q-category" id="q-category"></span>
+      </div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <button id="next-btn">Next Question →</button>
+    </div>
+
+    <div class="card score-panel">
+      <div class="player" id="panel-name"></div>
+      <div class="diff-badge" id="panel-diff"></div>
+      <div class="score-big" id="panel-score">0</div>
+      <div class="score-sub" id="panel-score-sub">Score</div>
+      <div class="stat-row stat-correct"><span>Correct</span><span id="stat-correct">0</span></div>
+      <div class="stat-row stat-wrong"><span>Wrong</span><span id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Remaining</span><span id="stat-remaining">0</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ END SCREEN ============ -->
+<div id="end-screen" class="screen">
+  <div class="card">
+    <div class="result-header">
+      <div class="result-score" id="result-score"></div>
+      <div class="result-pct" id="result-pct"></div>
+      <div class="result-msg" id="result-msg"></div>
+    </div>
+    <div id="review-list"></div>
+    <div class="end-actions">
+      <button id="restart-btn">Play Again</button>
+      <button id="end-scoreboard-btn" class="ghost-btn">🏆 View Scoreboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCOREBOARD SCREEN ============ -->
+<div id="scoreboard-screen" class="screen">
+  <div class="card">
+    <div class="scoreboard-header">
+      <div class="title" style="font-size:1.5rem;">🏆 Scoreboard</div>
+      <div class="subtitle" style="margin-bottom:0;">Saved on this device/browser — everyone who plays here shows up below</div>
+    </div>
+    <div id="scoreboard-table-wrap">
+      <table class="scoreboard-table" id="scoreboard-table">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Difficulty</th><th>Score</th><th>%</th><th>Date</th></tr>
+        </thead>
+        <tbody id="scoreboard-body"></tbody>
+      </table>
+      <div id="scoreboard-empty">No attempts yet — finish a quiz to show up here.</div>
+    </div>
+    <div class="scoreboard-actions">
+      <button id="scoreboard-back-btn" class="ghost-btn">← Back</button>
+      <button id="clear-scoreboard-btn" class="ghost-btn danger">Clear Scoreboard</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------- Question bank ----------------
+const BANK = [
+  {cat:"Pakistan Studies", diff:"easy", q:"When did Pakistan come into existence?", opts:["14 August 1947","15 August 1947","23 March 1940","27 October 1947"], correct:"14 August 1947"},
+  {cat:"Pakistan Studies", diff:"easy", q:"Who is known as the founder of Pakistan?", opts:["Allama Iqbal","Liaquat Ali Khan","Muhammad Ali Jinnah","Sir Syed Ahmed Khan"], correct:"Muhammad Ali Jinnah"},
+  {cat:"Pakistan Studies", diff:"medium", q:"The Lahore Resolution was passed in which year?", opts:["1929","1935","1940","1946"], correct:"1940"},
+  {cat:"Pakistan Studies", diff:"medium", q:"Which is the largest province of Pakistan by area?", opts:["Punjab","Sindh","Balochistan","Khyber Pakhtunkhwa"], correct:"Balochistan"},
+  {cat:"Pakistan Studies", diff:"easy", q:"Which river is the longest in Pakistan?", opts:["Jhelum","Chenab","Indus","Ravi"], correct:"Indus"},
+  {cat:"Pakistan Studies", diff:"hard", q:"Pakistan's first Constitution was passed in which year?", opts:["1956","1962","1973","1949"], correct:"1956"},
+  {cat:"Pakistan Studies", diff:"easy", q:"What is the currency of Pakistan?", opts:["Rupee","Taka","Dinar","Riyal"], correct:"Rupee"},
+  {cat:"Pakistan Studies", diff:"easy", q:"Which city is known as the 'City of Lights'?", opts:["Lahore","Karachi","Islamabad","Multan"], correct:"Karachi"},
+  {cat:"Pakistan Studies", diff:"easy", q:"Minar-e-Pakistan is located in which city?", opts:["Islamabad","Karachi","Lahore","Peshawar"], correct:"Lahore"},
+  {cat:"Pakistan Studies", diff:"easy", q:"Pakistan's national language is:", opts:["Punjabi","Sindhi","Urdu","Pashto"], correct:"Urdu"},
+
+  {cat:"Current Affairs & Govt", diff:"easy", q:"FIA stands for:", opts:["Federal Investment Agency","Federal Investigation Agency","Foreign Intelligence Agency","Federal Inland Authority"], correct:"Federal Investigation Agency"},
+  {cat:"Current Affairs & Govt", diff:"medium", q:"FIA works under which ministry?", opts:["Ministry of Defence","Ministry of Interior","Ministry of Finance","Ministry of Foreign Affairs"], correct:"Ministry of Interior"},
+  {cat:"Current Affairs & Govt", diff:"medium", q:"Who was Pakistan's first Prime Minister?", opts:["Liaquat Ali Khan","Huseyn Shaheed Suhrawardy","Feroz Khan Noon","Chaudhry Muhammad Ali"], correct:"Liaquat Ali Khan"},
+  {cat:"Current Affairs & Govt", diff:"easy", q:"The National Assembly's normal tenure is how many years?", opts:["3 years","4 years","5 years","6 years"], correct:"5 years"},
+  {cat:"Current Affairs & Govt", diff:"hard", q:"The National Assembly of Pakistan has how many general seats (approx, excluding reserved)?", opts:["272","342","100","200"], correct:"272"},
+  {cat:"Current Affairs & Govt", diff:"easy", q:"NADRA is primarily responsible for:", opts:["Tax collection","National identity registration","Passport printing only","Immigration control"], correct:"National identity registration"},
+  {cat:"Current Affairs & Govt", diff:"medium", q:"Which body conducts elections in Pakistan?", opts:["Supreme Court","Election Commission of Pakistan","National Assembly","Senate"], correct:"Election Commission of Pakistan"},
+  {cat:"Current Affairs & Govt", diff:"easy", q:"Pakistan's Senate is the:", opts:["Lower House","Upper House","Judicial House","Provisional House"], correct:"Upper House"},
+  {cat:"Current Affairs & Govt", diff:"easy", q:"SBP stands for:", opts:["State Bank of Pakistan","Sindh Bank of Pakistan","State Business Program","Special Banking Panel"], correct:"State Bank of Pakistan"},
+  {cat:"Current Affairs & Govt", diff:"easy", q:"CPEC is a project between Pakistan and which country?", opts:["USA","China","Russia","UK"], correct:"China"},
+
+  {cat:"World GK", diff:"medium", q:"The United Nations was established in which year?", opts:["1945","1948","1950","1939"], correct:"1945"},
+  {cat:"World GK", diff:"easy", q:"Headquarters of the United Nations is in:", opts:["Geneva","New York","Paris","London"], correct:"New York"},
+  {cat:"World GK", diff:"easy", q:"Which is the largest continent by area?", opts:["Africa","Asia","Europe","North America"], correct:"Asia"},
+  {cat:"World GK", diff:"medium", q:"Which is the smallest country in the world by area?", opts:["Monaco","Vatican City","San Marino","Malta"], correct:"Vatican City"},
+  {cat:"World GK", diff:"easy", q:"Which country is known as the 'Land of the Rising Sun'?", opts:["China","South Korea","Japan","Thailand"], correct:"Japan"},
+  {cat:"World GK", diff:"medium", q:"The longest river in the world is:", opts:["Amazon","Nile","Indus","Yangtze"], correct:"Nile"},
+  {cat:"World GK", diff:"medium", q:"Which organization handles global monetary cooperation, often paired with the World Bank?", opts:["WTO","IMF","WHO","UNESCO"], correct:"IMF"},
+  {cat:"World GK", diff:"easy", q:"Mount Everest is located in:", opts:["India","Nepal","China","Bhutan"], correct:"Nepal"},
+  {cat:"World GK", diff:"easy", q:"Which is the largest ocean in the world?", opts:["Atlantic Ocean","Indian Ocean","Pacific Ocean","Arctic Ocean"], correct:"Pacific Ocean"},
+  {cat:"World GK", diff:"hard", q:"The headquarters of SAARC is located in:", opts:["New Delhi","Kathmandu","Islamabad","Dhaka"], correct:"Kathmandu"},
+
+  {cat:"Islamic Studies", diff:"easy", q:"How many Surahs are there in the Holy Quran?", opts:["110","114","120","100"], correct:"114"},
+  {cat:"Islamic Studies", diff:"medium", q:"The first revelation of the Holy Quran was received in which cave?", opts:["Cave of Thawr","Cave of Hira","Cave of Uhud","Cave of Badr"], correct:"Cave of Hira"},
+  {cat:"Islamic Studies", diff:"easy", q:"How many Rakats are there in Fajr prayer (Fard)?", opts:["2","3","4","1"], correct:"2"},
+  {cat:"Islamic Studies", diff:"medium", q:"The Holy Prophet (PBUH) migrated from Makkah to Madinah in which year (Hijrah)?", opts:["610 AD","622 AD","632 AD","570 AD"], correct:"622 AD"},
+  {cat:"Islamic Studies", diff:"medium", q:"Which is the longest Surah in the Quran?", opts:["Al-Fatiha","Al-Baqarah","Yaseen","Al-Ikhlas"], correct:"Al-Baqarah"},
+  {cat:"Islamic Studies", diff:"easy", q:"How many Pillars of Islam are there?", opts:["4","5","6","7"], correct:"5"},
+  {cat:"Islamic Studies", diff:"medium", q:"The first Kalima is called:", opts:["Kalima Shahadat","Kalima Tayyab","Kalima Tamjeed","Kalima Tauheed"], correct:"Kalima Tayyab"},
+  {cat:"Islamic Studies", diff:"easy", q:"Who was the first Caliph of Islam?", opts:["Hazrat Umar (RA)","Hazrat Abu Bakr (RA)","Hazrat Usman (RA)","Hazrat Ali (RA)"], correct:"Hazrat Abu Bakr (RA)"},
+
+  {cat:"Everyday Science", diff:"easy", q:"The chemical symbol for water is:", opts:["H2O","CO2","O2","NaCl"], correct:"H2O"},
+  {cat:"Everyday Science", diff:"easy", q:"Which gas do plants absorb from the atmosphere for photosynthesis?", opts:["Oxygen","Nitrogen","Carbon Dioxide","Hydrogen"], correct:"Carbon Dioxide"},
+  {cat:"Everyday Science", diff:"easy", q:"The normal body temperature of a healthy human is approximately:", opts:["35°C","37°C","40°C","30°C"], correct:"37°C"},
+  {cat:"Everyday Science", diff:"easy", q:"Which part of the human body pumps blood?", opts:["Lungs","Brain","Heart","Liver"], correct:"Heart"},
+  {cat:"Everyday Science", diff:"medium", q:"Sound travels fastest in:", opts:["Air","Water","Solid","Vacuum"], correct:"Solid"},
+  {cat:"Everyday Science", diff:"medium", q:"The unit of electric current is:", opts:["Volt","Watt","Ampere","Ohm"], correct:"Ampere"},
+  {cat:"Everyday Science", diff:"medium", q:"Which vitamin is produced when skin is exposed to sunlight?", opts:["Vitamin A","Vitamin C","Vitamin D","Vitamin B12"], correct:"Vitamin D"},
+  {cat:"Everyday Science", diff:"easy", q:"The Earth revolves around the Sun in approximately:", opts:["24 hours","30 days","365 days","12 hours"], correct:"365 days"},
+
+  {cat:"Computer Basics", diff:"easy", q:"CPU stands for:", opts:["Central Process Unit","Central Processing Unit","Computer Personal Unit","Central Processor Utility"], correct:"Central Processing Unit"},
+  {cat:"Computer Basics", diff:"easy", q:"Which of these is an input device?", opts:["Printer","Monitor","Keyboard","Speaker"], correct:"Keyboard"},
+  {cat:"Computer Basics", diff:"easy", q:"RAM stands for:", opts:["Random Access Memory","Read Access Memory","Random Application Memory","Read Application Module"], correct:"Random Access Memory"},
+  {cat:"Computer Basics", diff:"easy", q:"The shortcut key to copy selected text is:", opts:["Ctrl + V","Ctrl + C","Ctrl + X","Ctrl + Z"], correct:"Ctrl + C"},
+
+
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The ancient/old name of Lahore, linked to Hindu mythology, was?", "opts": ["Lava-Pura", "Cambell Pur", "Lyall Pur", "Minnapur"], "correct": "Lava-Pura"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "The Khyber Pass connects Peshawar with which country?", "opts": ["Afghanistan", "Iran", "China", "India"], "correct": "Afghanistan"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Bolan Pass is located in which province of Pakistan?", "opts": ["Balochistan", "Sindh", "Punjab", "Khyber Pakhtunkhwa"], "correct": "Balochistan"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The international boundary line between Pakistan and India is known as?", "opts": ["Radcliffe Line", "Durand Line", "McMahon Line", "Wagah Line"], "correct": "Radcliffe Line"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Indus Waters Treaty between Pakistan and India was signed in which year?", "opts": ["1960", "1950", "1965", "1973"], "correct": "1960"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Which mountain range separates Pakistan from Afghanistan?", "opts": ["Hindu Kush", "Karakoram", "Himalayas", "Pamir"], "correct": "Hindu Kush"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "K2, the second-highest mountain on Earth, is part of which mountain range?", "opts": ["Karakoram", "Hindu Kush", "Himalayas", "Sulaiman Range"], "correct": "Karakoram"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "K2 is also known by which other name?", "opts": ["Mount Godwin-Austen", "Mount Everest", "Tirich Mir", "Broad Peak"], "correct": "Mount Godwin-Austen"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Which is the second-highest mountain in Pakistan?", "opts": ["Nanga Parbat", "Gasherbrum I", "Broad Peak", "Rakaposhi"], "correct": "Nanga Parbat"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Nanga Parbat is popularly known as the?", "opts": ["Killer Mountain", "Savage Mountain", "Sleeping Giant", "Roof of the World"], "correct": "Killer Mountain"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "K2 is popularly nicknamed the?", "opts": ["Savage Mountain", "Killer Mountain", "Silent Giant", "Iron Peak"], "correct": "Savage Mountain"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Which is the highest glacier in Pakistan?", "opts": ["Siachen Glacier", "Baltoro Glacier", "Batura Glacier", "Biafo Glacier"], "correct": "Siachen Glacier"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "What is the national flower of Pakistan?", "opts": ["Jasmine", "Rose", "Lily", "Sunflower"], "correct": "Jasmine"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "What is the national bird of Pakistan?", "opts": ["Chukar (Chakor)", "Peacock", "Eagle", "Falcon"], "correct": "Chukar (Chakor)"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "What is the national animal of Pakistan?", "opts": ["Markhor", "Snow Leopard", "Ibex", "Blackbuck"], "correct": "Markhor"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "What is the national tree of Pakistan?", "opts": ["Deodar", "Banyan", "Neem", "Mango tree"], "correct": "Deodar"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "What is the national sport of Pakistan?", "opts": ["Hockey", "Cricket", "Kabaddi", "Squash"], "correct": "Hockey"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Pakistan Day, commemorating the Lahore Resolution, is observed every year on?", "opts": ["23 March", "14 August", "23 March 1940", "6 September"], "correct": "23 March"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Who founded the Aligarh Movement to promote modern education among Muslims of British India?", "opts": ["Sir Syed Ahmed Khan", "Allama Iqbal", "Quaid-e-Azam", "Nawab Salimullah Khan"], "correct": "Sir Syed Ahmed Khan"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "In which year did Sir Syed Ahmed Khan found the Muhammadan Anglo-Oriental College at Aligarh (later Aligarh Muslim University)?", "opts": ["1875", "1857", "1906", "1930"], "correct": "1875"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "In which city was the All India Muslim League founded in 1906?", "opts": ["Dhaka (Dacca)", "Lahore", "Aligarh", "Lucknow"], "correct": "Dhaka (Dacca)"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The All India Muslim League was founded in which year?", "opts": ["1906", "1913", "1930", "1940"], "correct": "1906"},
+  {"cat": "Pakistan Studies", "diff": "hard", "q": "Who was the first President of the All India Muslim League?", "opts": ["Sir Aga Khan III", "Quaid-e-Azam Muhammad Ali Jinnah", "Nawab Salimullah Khan", "Liaquat Ali Khan"], "correct": "Sir Aga Khan III"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Simla Deputation, which met the Viceroy to demand separate electorates for Muslims, took place in which year?", "opts": ["1906", "1909", "1916", "1930"], "correct": "1906"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Who is regarded as the spiritual/philosophical father of Pakistan for his 1930 Allahabad Address proposing a separate Muslim state?", "opts": ["Allama Muhammad Iqbal", "Quaid-e-Azam", "Sir Syed Ahmed Khan", "Liaquat Ali Khan"], "correct": "Allama Muhammad Iqbal"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Allama Iqbal delivered his historic Allahabad Address in which year?", "opts": ["1930", "1928", "1940", "1935"], "correct": "1930"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Cabinet Mission Plan, proposing a federal structure for a united India, was presented in which year?", "opts": ["1946", "1942", "1940", "1947"], "correct": "1946"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Cripps Mission was sent to India by the British in which year?", "opts": ["1942", "1940", "1946", "1935"], "correct": "1942"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Who served as the first Governor-General of Pakistan?", "opts": ["Muhammad Ali Jinnah", "Liaquat Ali Khan", "Khawaja Nazimuddin", "Ghulam Muhammad"], "correct": "Muhammad Ali Jinnah"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "British India was partitioned into India and Pakistan under which Act of the British Parliament?", "opts": ["Indian Independence Act 1947", "Government of India Act 1935", "Government of India Act 1919", "Rowlatt Act"], "correct": "Indian Independence Act 1947"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The boundary between Pakistan and India (the Radcliffe Line) was drawn by?", "opts": ["Sir Cyril Radcliffe", "Lord Mountbatten", "Sir Stafford Cripps", "Lord Wavell"], "correct": "Sir Cyril Radcliffe"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The 1973 Constitution of Pakistan came into force on which date?", "opts": ["14 August 1973", "23 March 1973", "10 April 1973", "1 July 1973"], "correct": "14 August 1973"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "The 1973 Constitution of Pakistan established which system of government?", "opts": ["Parliamentary", "Presidential", "Monarchy", "Federal-Unitary hybrid without a legislature"], "correct": "Parliamentary"},
+  {"cat": "Pakistan Studies", "diff": "hard", "q": "Which article of the Constitution of Pakistan made the Objectives Resolution a substantive part of the Constitution?", "opts": ["Article 2A", "Article 6", "Article 62", "Article 218"], "correct": "Article 2A"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Under the Constitution of Pakistan, what is the minimum age to become President?", "opts": ["45 years", "35 years", "40 years", "50 years"], "correct": "45 years"},
+  {"cat": "Pakistan Studies", "diff": "hard", "q": "Under which article of the Constitution is the Election Commission of Pakistan constituted?", "opts": ["Article 218", "Article 200", "Article 90", "Article 17"], "correct": "Article 218"},
+  {"cat": "Pakistan Studies", "diff": "hard", "q": "Fundamental Rights in the Constitution of Pakistan are covered under which range of articles?", "opts": ["Articles 8 to 28", "Articles 1 to 7", "Articles 50 to 100", "Articles 200 to 260"], "correct": "Articles 8 to 28"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "How many provinces does Pakistan have?", "opts": ["4", "3", "5", "6"], "correct": "4"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Which is the smallest province of Pakistan by land area?", "opts": ["Khyber Pakhtunkhwa", "Punjab", "Sindh", "Balochistan"], "correct": "Khyber Pakhtunkhwa"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Lahore is traditionally referred to by which nickname because of its many Mughal-era gardens?", "opts": ["City of Gardens", "City of Lights", "City of Minarets", "City of Saints"], "correct": "City of Gardens"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Faisalabad is often referred to as the?", "opts": ["Manchester of Pakistan", "City of Lights", "Garden City", "Steel City"], "correct": "Manchester of Pakistan"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Which is the largest desert in Pakistan, located mainly in Sindh?", "opts": ["Thar Desert", "Kharan Desert", "Cholistan Desert", "Thal Desert"], "correct": "Thar Desert"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Tarbela Dam, one of the largest earth-filled dams in the world, is built on which river?", "opts": ["Indus River", "Jhelum River", "Chenab River", "Ravi River"], "correct": "Indus River"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Mangla Dam is built on which river?", "opts": ["Jhelum River", "Indus River", "Chenab River", "Sutlej River"], "correct": "Jhelum River"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Which mountain pass connects Pakistan with China?", "opts": ["Khunjerab Pass", "Khyber Pass", "Bolan Pass", "Lowari Pass"], "correct": "Khunjerab Pass"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "The Karakoram Highway connects Pakistan with which country?", "opts": ["China", "Afghanistan", "Iran", "India"], "correct": "China"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Karakoram Highway is often cited as the highest what in the world?", "opts": ["Paved international road", "Railway line", "Bridge", "Airport"], "correct": "Paved international road"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "Gwadar Port is situated on the coast of which sea?", "opts": ["Arabian Sea", "Red Sea", "Caspian Sea", "Persian Gulf"], "correct": "Arabian Sea"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Quetta is the provincial capital of which province?", "opts": ["Balochistan", "Khyber Pakhtunkhwa", "Sindh", "Punjab"], "correct": "Balochistan"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Peshawar is the provincial capital of which province?", "opts": ["Khyber Pakhtunkhwa", "Balochistan", "Sindh", "Punjab"], "correct": "Khyber Pakhtunkhwa"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Before Islamabad, which city served as the first capital of Pakistan from 1947 to the early 1960s?", "opts": ["Karachi", "Lahore", "Rawalpindi", "Peshawar"], "correct": "Karachi"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "The Badshahi Mosque, one of the largest mosques from the Mughal era, is located in which city?", "opts": ["Lahore", "Multan", "Karachi", "Peshawar"], "correct": "Lahore"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Badshahi Mosque in Lahore was built during the reign of which Mughal Emperor?", "opts": ["Aurangzeb", "Shah Jahan", "Akbar", "Jahangir"], "correct": "Aurangzeb"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The Shalimar Gardens in Lahore were built by which Mughal Emperor?", "opts": ["Shah Jahan", "Akbar", "Aurangzeb", "Babur"], "correct": "Shah Jahan"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "In which city was Quaid-e-Azam Muhammad Ali Jinnah born?", "opts": ["Karachi", "Lahore", "Bombay", "Sialkot"], "correct": "Karachi"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "The title \"Quaid-e-Azam\" given to Muhammad Ali Jinnah translates to?", "opts": ["Great Leader", "Father of the Nation", "Guardian of Islam", "Voice of the People"], "correct": "Great Leader"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "The title \"Mader-e-Millat\" (Mother of the Nation) was given to which Pakistani leader?", "opts": ["Fatima Jinnah", "Benazir Bhutto", "Begum Ra'ana Liaquat Ali Khan", "Nusrat Bhutto"], "correct": "Fatima Jinnah"},
+  {"cat": "Pakistan Studies", "diff": "medium", "q": "In which city was poet-philosopher Allama Iqbal born?", "opts": ["Sialkot", "Lahore", "Karachi", "Multan"], "correct": "Sialkot"},
+  {"cat": "Pakistan Studies", "diff": "easy", "q": "Who is recognized as the National Poet of Pakistan?", "opts": ["Allama Muhammad Iqbal", "Faiz Ahmed Faiz", "Mirza Ghalib", "Ahmed Faraz"], "correct": "Allama Muhammad Iqbal"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which is the shortest Surah in the Holy Quran?", "opts": ["Al-Kausar", "Al-Ikhlas", "An-Nasr", "Al-Asr"], "correct": "Al-Kausar"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which is the only Surah in the Quran that does not begin with 'Bismillah'?", "opts": ["Surah At-Tawbah", "Surah Al-Fatiha", "Surah Yaseen", "Surah Al-Baqarah"], "correct": "Surah At-Tawbah"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which Surah of the Quran is named after the mother of Prophet Isa (AS)?", "opts": ["Surah Maryam", "Surah Yaseen", "Surah Al-Baqarah", "Surah Al-Kahf"], "correct": "Surah Maryam"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which is the first Surah of the Holy Quran?", "opts": ["Al-Fatiha", "Al-Baqarah", "Al-Ikhlas", "Yaseen"], "correct": "Al-Fatiha"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "The Holy Quran is divided into how many Paras (Juz)?", "opts": ["30", "27", "40", "114"], "correct": "30"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who was the first adult male to accept Islam?", "opts": ["Hazrat Abu Bakr (RA)", "Hazrat Umar (RA)", "Hazrat Ali (RA)", "Hazrat Usman (RA)"], "correct": "Hazrat Abu Bakr (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who was the first woman to accept Islam?", "opts": ["Hazrat Khadija (RA)", "Hazrat Ayesha (RA)", "Hazrat Fatima (RA)", "Hazrat Hafsa (RA)"], "correct": "Hazrat Khadija (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who was the first child/youth to accept Islam?", "opts": ["Hazrat Ali (RA)", "Hazrat Zaid bin Haris (RA)", "Hazrat Usman (RA)", "Hazrat Umar (RA)"], "correct": "Hazrat Ali (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who became the second Caliph of Islam after Hazrat Abu Bakr (RA)?", "opts": ["Hazrat Umar (RA)", "Hazrat Usman (RA)", "Hazrat Ali (RA)", "Hazrat Abu Ubaidah (RA)"], "correct": "Hazrat Umar (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who was the third Caliph of Islam?", "opts": ["Hazrat Usman (RA)", "Hazrat Umar (RA)", "Hazrat Ali (RA)", "Hazrat Abu Bakr (RA)"], "correct": "Hazrat Usman (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who was the fourth and last of the rightly-guided Caliphs (Khulafa-e-Rashideen)?", "opts": ["Hazrat Ali (RA)", "Hazrat Usman (RA)", "Hazrat Umar (RA)", "Hazrat Hassan (RA)"], "correct": "Hazrat Ali (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which Caliph is known by the title 'Al-Farooq' (one who distinguishes truth from falsehood)?", "opts": ["Hazrat Umar (RA)", "Hazrat Abu Bakr (RA)", "Hazrat Usman (RA)", "Hazrat Ali (RA)"], "correct": "Hazrat Umar (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Caliph is known by the title 'Siddiq' (the truthful)?", "opts": ["Hazrat Abu Bakr (RA)", "Hazrat Umar (RA)", "Hazrat Usman (RA)", "Hazrat Ali (RA)"], "correct": "Hazrat Abu Bakr (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "During whose caliphate was the Quran first compiled into a single book form (Mushaf)?", "opts": ["Hazrat Abu Bakr (RA)", "Hazrat Umar (RA)", "Hazrat Usman (RA)", "Hazrat Ali (RA)"], "correct": "Hazrat Abu Bakr (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "During whose caliphate was the Quran standardized into a single dialect and copies distributed to major cities?", "opts": ["Hazrat Usman (RA)", "Hazrat Abu Bakr (RA)", "Hazrat Umar (RA)", "Hazrat Ali (RA)"], "correct": "Hazrat Usman (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which companion of the Prophet (PBUH) was given the title 'Asadullah' (Lion of Allah)?", "opts": ["Hazrat Hamza (RA)", "Hazrat Khalid bin Waleed (RA)", "Hazrat Ali (RA)", "Hazrat Abu Ubaidah (RA)"], "correct": "Hazrat Hamza (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Me'raj (Night Journey and Ascension) of the Prophet (PBUH) began from which mosque in Jerusalem?", "opts": ["Al-Aqsa Mosque", "Masjid-e-Nabawi", "Masjid-e-Quba", "Masjid-e-Qiblatain"], "correct": "Al-Aqsa Mosque"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "In the Islamic calendar, the year in which the Prophet's (PBUH) wife Khadija (RA) and uncle Abu Talib both passed away is known as?", "opts": ["Aam-ul-Huzn (Year of Sorrow)", "Aam-ul-Feel (Year of the Elephant)", "Aam-ul-Wafood (Year of Delegations)", "Aam-ul-Fatah (Year of Victory)"], "correct": "Aam-ul-Huzn (Year of Sorrow)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "In which battle did the Muslims suffer their first major military setback?", "opts": ["Battle of Uhud", "Battle of Badr", "Battle of the Trench", "Battle of Hunayn"], "correct": "Battle of Uhud"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Battle of Badr was fought in which Hijri year?", "opts": ["2 AH", "3 AH", "5 AH", "8 AH"], "correct": "2 AH"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Battle of Uhud was fought in which Hijri year?", "opts": ["3 AH", "2 AH", "4 AH", "6 AH"], "correct": "3 AH"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Battle of the Trench (Ghazwa-e-Khandaq) was fought in which Hijri year?", "opts": ["5 AH", "3 AH", "6 AH", "8 AH"], "correct": "5 AH"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who proposed digging a trench around Madinah to defend it during the Battle of the Trench?", "opts": ["Hazrat Salman al-Farsi (RA)", "Hazrat Abu Bakr (RA)", "Hazrat Ali (RA)", "Hazrat Bilal (RA)"], "correct": "Hazrat Salman al-Farsi (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Treaty of Hudaybiyyah between the Muslims and the Quraysh was signed in which Hijri year?", "opts": ["6 AH", "5 AH", "8 AH", "10 AH"], "correct": "6 AH"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Conquest of Makkah (Fatah Makkah) took place in which Hijri year?", "opts": ["8 AH", "6 AH", "10 AH", "5 AH"], "correct": "8 AH"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "The Farewell Pilgrimage (Hajjatul Wida) of the Prophet (PBUH) took place in which Hijri year?", "opts": ["10 AH", "8 AH", "9 AH", "11 AH"], "correct": "10 AH"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "What is the minimum standard rate of Zakat payable on qualifying wealth?", "opts": ["2.5%", "5%", "10%", "1%"], "correct": "2.5%"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Zakat is obligatory on wealth that has been held for at least how long?", "opts": ["One lunar year", "Six months", "One solar year", "Three months"], "correct": "One lunar year"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which pillar of Islam involves fasting during the month of Ramadan?", "opts": ["Sawm", "Salat", "Zakat", "Hajj"], "correct": "Sawm"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Fasting in the month of Ramadan was made obligatory on Muslims in which Hijri year?", "opts": ["2 AH", "1 AH", "5 AH", "10 AH"], "correct": "2 AH"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "The Holy Kaaba is located in which city?", "opts": ["Makkah", "Madinah", "Jerusalem", "Taif"], "correct": "Makkah"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "How many obligatory (Fard) prayers has Allah prescribed for Muslims each day?", "opts": ["5", "4", "3", "7"], "correct": "5"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which angel is responsible for delivering divine revelation to the Prophets?", "opts": ["Hazrat Jibreel (AS)", "Hazrat Israfil (AS)", "Hazrat Mikail (AS)", "Hazrat Izraeel (AS)"], "correct": "Hazrat Jibreel (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which angel will blow the trumpet (Sur) to signal the Day of Judgment?", "opts": ["Hazrat Israfil (AS)", "Hazrat Jibreel (AS)", "Hazrat Mikail (AS)", "Hazrat Izraeel (AS)"], "correct": "Hazrat Israfil (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which angel is responsible for taking the souls of the deceased?", "opts": ["Hazrat Izraeel (AS)", "Hazrat Jibreel (AS)", "Hazrat Israfil (AS)", "Hazrat Mikail (AS)"], "correct": "Hazrat Izraeel (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "According to Islamic belief, how many major revealed Holy Books are named in the Quran?", "opts": ["4", "3", "5", "2"], "correct": "4"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "The Torah (Tawrat) was revealed to which Prophet?", "opts": ["Hazrat Musa (AS)", "Hazrat Isa (AS)", "Hazrat Dawood (AS)", "Hazrat Ibrahim (AS)"], "correct": "Hazrat Musa (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "The Zaboor (Psalms) was revealed to which Prophet?", "opts": ["Hazrat Dawood (AS)", "Hazrat Musa (AS)", "Hazrat Isa (AS)", "Hazrat Sulaiman (AS)"], "correct": "Hazrat Dawood (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "The Injeel (Gospel) was revealed to which Prophet?", "opts": ["Hazrat Isa (AS)", "Hazrat Musa (AS)", "Hazrat Dawood (AS)", "Hazrat Yahya (AS)"], "correct": "Hazrat Isa (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which Prophet is known by the title 'Kalim-Ullah' (the one who spoke directly with Allah)?", "opts": ["Hazrat Musa (AS)", "Hazrat Ibrahim (AS)", "Hazrat Isa (AS)", "Hazrat Adam (AS)"], "correct": "Hazrat Musa (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which Prophet is known by the title 'Khalil-Ullah' (Friend of Allah)?", "opts": ["Hazrat Ibrahim (AS)", "Hazrat Musa (AS)", "Hazrat Nuh (AS)", "Hazrat Adam (AS)"], "correct": "Hazrat Ibrahim (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Prophet, along with his son Hazrat Ismail (AS), rebuilt the foundations of the Kaaba?", "opts": ["Hazrat Ibrahim (AS)", "Hazrat Adam (AS)", "Hazrat Nuh (AS)", "Hazrat Musa (AS)"], "correct": "Hazrat Ibrahim (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who is regarded as the first human being and the first Prophet in Islam?", "opts": ["Hazrat Adam (AS)", "Hazrat Nuh (AS)", "Hazrat Ibrahim (AS)", "Hazrat Idris (AS)"], "correct": "Hazrat Adam (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Prophet was swallowed by a large fish and is associated with patience in adversity?", "opts": ["Hazrat Yunus (AS)", "Hazrat Yousuf (AS)", "Hazrat Ayub (AS)", "Hazrat Younus"], "correct": "Hazrat Yunus (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Prophet is associated with a great flood and the building of an ark?", "opts": ["Hazrat Nuh (AS)", "Hazrat Musa (AS)", "Hazrat Ibrahim (AS)", "Hazrat Lut (AS)"], "correct": "Hazrat Nuh (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Which Prophet is renowned in the Quran for his extraordinary patience during prolonged illness and hardship?", "opts": ["Hazrat Ayub (AS)", "Hazrat Yunus (AS)", "Hazrat Yousuf (AS)", "Hazrat Zakariya (AS)"], "correct": "Hazrat Ayub (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Prophet correctly interpreted dreams and later became a minister/governor in Egypt?", "opts": ["Hazrat Yousuf (AS)", "Hazrat Yunus (AS)", "Hazrat Musa (AS)", "Hazrat Sulaiman (AS)"], "correct": "Hazrat Yousuf (AS)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "What was the real name of the Queen of Sheba who visited Prophet Sulaiman (AS)?", "opts": ["Bilqis", "Zulaikha", "Asiya", "Hajira"], "correct": "Bilqis"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which Prophet, according to the Quran, could understand the speech of birds and animals?", "opts": ["Hazrat Sulaiman (AS)", "Hazrat Dawood (AS)", "Hazrat Musa (AS)", "Hazrat Isa (AS)"], "correct": "Hazrat Sulaiman (AS)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which is the holiest month in the Islamic (Hijri) calendar, in which fasting is obligatory?", "opts": ["Ramadan", "Muharram", "Rajab", "Shawwal"], "correct": "Ramadan"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which is the first month of the Islamic (Hijri) calendar?", "opts": ["Muharram", "Safar", "Ramadan", "Shawwal"], "correct": "Muharram"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Which is the last month of the Islamic (Hijri) calendar, during which Hajj is performed?", "opts": ["Dhul Hijjah", "Dhul Qa'dah", "Shawwal", "Muharram"], "correct": "Dhul Hijjah"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Eid-ul-Fitr is celebrated on which date of the Islamic calendar?", "opts": ["1st Shawwal", "10th Dhul Hijjah", "1st Ramadan", "27th Ramadan"], "correct": "1st Shawwal"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Eid-ul-Adha is celebrated on which date of the Islamic calendar?", "opts": ["10th Dhul Hijjah", "1st Shawwal", "9th Dhul Hijjah", "1st Muharram"], "correct": "10th Dhul Hijjah"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "Who was the Prophet's (PBUH) first wife, who was also the first person to accept Islam?", "opts": ["Hazrat Khadija (RA)", "Hazrat Ayesha (RA)", "Hazrat Hafsa (RA)", "Hazrat Zainab (RA)"], "correct": "Hazrat Khadija (RA)"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who was the wet nurse (foster mother) who breastfed and raised Prophet Muhammad (PBUH) in his infancy?", "opts": ["Hazrat Halima Sadia (RA)", "Hazrat Amina (RA)", "Hazrat Khadija (RA)", "Umm-e-Aiman (RA)"], "correct": "Hazrat Halima Sadia (RA)"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "What was the name of Prophet Muhammad's (PBUH) father, who passed away before his birth?", "opts": ["Abdullah", "Abdul Muttalib", "Abu Talib", "Hamza"], "correct": "Abdullah"},
+  {"cat": "Islamic Studies", "diff": "easy", "q": "What was the name of Prophet Muhammad's (PBUH) mother?", "opts": ["Amina", "Khadija", "Halima", "Safiya"], "correct": "Amina"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who was the grandfather of Prophet Muhammad (PBUH) who cared for him after his mother's death?", "opts": ["Abdul Muttalib", "Abu Talib", "Abdullah", "Hamza"], "correct": "Abdul Muttalib"},
+  {"cat": "Islamic Studies", "diff": "medium", "q": "Who was the paternal uncle of Prophet Muhammad (PBUH) who raised him after his grandfather's death?", "opts": ["Abu Talib", "Abdul Muttalib", "Hamza", "Abbas"], "correct": "Abu Talib"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which planet is known as the 'Red Planet'?", "opts": ["Mars", "Venus", "Jupiter", "Mercury"], "correct": "Mars"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which is the largest planet in our solar system?", "opts": ["Jupiter", "Saturn", "Neptune", "Earth"], "correct": "Jupiter"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which planet is famous for its prominent ring system?", "opts": ["Saturn", "Jupiter", "Uranus", "Mars"], "correct": "Saturn"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which planet is closest to the Sun?", "opts": ["Mercury", "Venus", "Earth", "Mars"], "correct": "Mercury"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which planet is often called Earth's 'twin' because of its similar size?", "opts": ["Venus", "Mars", "Mercury", "Neptune"], "correct": "Venus"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which is the outermost planet in our solar system?", "opts": ["Neptune", "Uranus", "Pluto", "Saturn"], "correct": "Neptune"},
+  {"cat": "Everyday Science", "diff": "hard", "q": "Which planet is unique for rotating almost on its side, with its axis nearly parallel to its orbit?", "opts": ["Uranus", "Neptune", "Saturn", "Venus"], "correct": "Uranus"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "The Sun is composed mainly of which two elements?", "opts": ["Hydrogen and Helium", "Oxygen and Nitrogen", "Carbon and Hydrogen", "Helium and Oxygen"], "correct": "Hydrogen and Helium"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Approximately how long does the Moon take to complete one orbit around the Earth?", "opts": ["About 27-28 days", "About 7 days", "About 60 days", "About 12 hours"], "correct": "About 27-28 days"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which layer of Earth's atmosphere contains the ozone layer that absorbs harmful UV radiation?", "opts": ["Stratosphere", "Troposphere", "Mesosphere", "Thermosphere"], "correct": "Stratosphere"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which is the most abundant gas in Earth's atmosphere by volume?", "opts": ["Nitrogen", "Oxygen", "Carbon dioxide", "Argon"], "correct": "Nitrogen"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which green pigment in plants captures sunlight for photosynthesis?", "opts": ["Chlorophyll", "Carotene", "Melanin", "Hemoglobin"], "correct": "Chlorophyll"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "The process by which plants lose water vapor through pores in their leaves is called?", "opts": ["Transpiration", "Respiration", "Photosynthesis", "Osmosis"], "correct": "Transpiration"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which blood group is known as the 'universal donor'?", "opts": ["O negative", "AB positive", "A positive", "B negative"], "correct": "O negative"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which blood group is known as the 'universal recipient'?", "opts": ["AB positive", "O negative", "A negative", "B positive"], "correct": "AB positive"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which part of the human eye controls the amount of light entering it?", "opts": ["Iris", "Retina", "Cornea", "Lens"], "correct": "Iris"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which part of the human eye is light-sensitive and forms the image?", "opts": ["Retina", "Iris", "Cornea", "Pupil"], "correct": "Retina"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which organ in the human body produces bile to help digest fats?", "opts": ["Liver", "Kidney", "Pancreas", "Gall bladder"], "correct": "Liver"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which organ filters waste from the blood to produce urine?", "opts": ["Kidney", "Liver", "Lungs", "Spleen"], "correct": "Kidney"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the basic structural and functional unit of the nervous system called?", "opts": ["Neuron", "Nephron", "Axon", "Synapse"], "correct": "Neuron"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which part of the brain is mainly responsible for balance and muscular coordination?", "opts": ["Cerebellum", "Cerebrum", "Medulla oblongata", "Hypothalamus"], "correct": "Cerebellum"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "How many bones are there in an average adult human body?", "opts": ["206", "201", "212", "196"], "correct": "206"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "How many ribs does a normal adult human have in total?", "opts": ["24", "22", "26", "20"], "correct": "24"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Approximately what percentage of the human body is made up of water?", "opts": ["About 60%", "About 30%", "About 90%", "About 45%"], "correct": "About 60%"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Deficiency of which vitamin causes the disease scurvy?", "opts": ["Vitamin C", "Vitamin A", "Vitamin B12", "Vitamin K"], "correct": "Vitamin C"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Deficiency of which vitamin causes night blindness?", "opts": ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin E"], "correct": "Vitamin A"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which vitamin plays a key role in blood clotting?", "opts": ["Vitamin K", "Vitamin A", "Vitamin C", "Vitamin B6"], "correct": "Vitamin K"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which gas do green plants release into the atmosphere during photosynthesis?", "opts": ["Oxygen", "Carbon dioxide", "Nitrogen", "Hydrogen"], "correct": "Oxygen"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which gas is essential for respiration in humans and most animals?", "opts": ["Oxygen", "Carbon dioxide", "Nitrogen", "Helium"], "correct": "Oxygen"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "What is the chemical symbol for gold?", "opts": ["Au", "Ag", "Gd", "Go"], "correct": "Au"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "What is the chemical symbol for iron?", "opts": ["Fe", "Ir", "In", "Fr"], "correct": "Fe"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "What is the chemical symbol for sodium?", "opts": ["Na", "So", "Sd", "Sn"], "correct": "Na"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "What is the chemical symbol for potassium?", "opts": ["K", "P", "Po", "Pt"], "correct": "K"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "What is the chemical symbol for silver?", "opts": ["Ag", "Si", "Sv", "Au"], "correct": "Ag"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "At sea level, water freezes at what temperature on the Celsius scale?", "opts": ["0°C", "32°C", "100°C", "-10°C"], "correct": "0°C"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "At sea level, water boils at what temperature on the Celsius scale?", "opts": ["100°C", "0°C", "80°C", "212°C"], "correct": "100°C"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which gas is commonly used inside neon signs to produce their glow?", "opts": ["Neon", "Argon", "Krypton", "Helium"], "correct": "Neon"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Sound cannot travel through which of the following?", "opts": ["A vacuum", "Water", "Steel", "Air"], "correct": "A vacuum"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "A glass can shatter when a sound wave matches its natural frequency, a phenomenon known as?", "opts": ["Resonance", "Refraction", "Diffraction", "Reflection"], "correct": "Resonance"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Light travels fastest through which of the following media?", "opts": ["Vacuum", "Water", "Glass", "Air"], "correct": "Vacuum"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Among the colors of visible light, which has the shortest wavelength?", "opts": ["Violet", "Red", "Green", "Yellow"], "correct": "Violet"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which law of motion states that for every action there is an equal and opposite reaction?", "opts": ["Newton's Third Law", "Newton's First Law", "Newton's Second Law", "Law of Gravitation"], "correct": "Newton's Third Law"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Who formulated the three fundamental laws of motion?", "opts": ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Michael Faraday"], "correct": "Isaac Newton"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Who developed the theory of relativity?", "opts": ["Albert Einstein", "Isaac Newton", "Niels Bohr", "Max Planck"], "correct": "Albert Einstein"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Isaac Newton is famously credited with formulating the law of gravity after observing what?", "opts": ["A falling apple", "A swinging pendulum", "A rolling ball", "A floating boat"], "correct": "A falling apple"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which scientist discovered penicillin, the first widely used antibiotic?", "opts": ["Alexander Fleming", "Louis Pasteur", "Robert Koch", "Edward Jenner"], "correct": "Alexander Fleming"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which scientist proposed the theory of evolution by natural selection?", "opts": ["Charles Darwin", "Gregor Mendel", "Alfred Wallace", "Jean-Baptiste Lamarck"], "correct": "Charles Darwin"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which scientist is credited with discovering the electron?", "opts": ["J.J. Thomson", "Ernest Rutherford", "Niels Bohr", "James Chadwick"], "correct": "J.J. Thomson"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which scientist discovered X-rays?", "opts": ["Wilhelm Röntgen", "Marie Curie", "Ernest Rutherford", "Henri Becquerel"], "correct": "Wilhelm Röntgen"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which scientist discovered the radioactive elements radium and polonium?", "opts": ["Marie Curie", "Wilhelm Röntgen", "Ernest Rutherford", "Dmitri Mendeleev"], "correct": "Marie Curie"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the SI unit of force?", "opts": ["Newton", "Joule", "Watt", "Pascal"], "correct": "Newton"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the SI unit of work/energy?", "opts": ["Joule", "Newton", "Watt", "Ohm"], "correct": "Joule"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the SI unit of power?", "opts": ["Watt", "Joule", "Newton", "Volt"], "correct": "Watt"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the SI unit of pressure?", "opts": ["Pascal", "Newton", "Joule", "Bar"], "correct": "Pascal"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What is the SI unit of frequency?", "opts": ["Hertz", "Watt", "Joule", "Decibel"], "correct": "Hertz"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which instrument is used to measure atmospheric pressure?", "opts": ["Barometer", "Thermometer", "Hygrometer", "Anemometer"], "correct": "Barometer"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which instrument is used to measure temperature?", "opts": ["Thermometer", "Barometer", "Anemometer", "Seismograph"], "correct": "Thermometer"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which instrument is used to measure the speed of wind?", "opts": ["Anemometer", "Barometer", "Thermometer", "Hygrometer"], "correct": "Anemometer"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which instrument is used to detect and measure the intensity of earthquakes?", "opts": ["Seismograph", "Barometer", "Anemometer", "Altimeter"], "correct": "Seismograph"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "A group of wolves is commonly referred to as a?", "opts": ["Pack", "Herd", "Flock", "Swarm"], "correct": "Pack"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Astronomy is the scientific study of?", "opts": ["Stars, planets, and other celestial bodies", "The Earth's landforms", "Weather patterns", "Living organisms"], "correct": "Stars, planets, and other celestial bodies"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Biology is the scientific study of?", "opts": ["Living organisms", "Rocks and minerals", "Chemical reactions", "The universe"], "correct": "Living organisms"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Meteorology is the scientific study of?", "opts": ["Weather and atmospheric phenomena", "Earthquakes", "Ocean currents", "Stars and planets"], "correct": "Weather and atmospheric phenomena"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which medical imaging scan uses magnetic fields to produce detailed images of soft tissue?", "opts": ["MRI", "X-ray", "CT scan", "Ultrasound"], "correct": "MRI"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Which imaging test is most commonly used to detect bone fractures?", "opts": ["X-ray", "MRI", "CT scan", "Ultrasound"], "correct": "X-ray"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Amino acids are the basic building blocks of which biomolecule?", "opts": ["Proteins", "Carbohydrates", "Fats", "Vitamins"], "correct": "Proteins"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "What does the abbreviation 'DNA' stand for?", "opts": ["Deoxyribonucleic Acid", "Deoxyribose Nuclear Acid", "Dual Nucleic Acid", "Di-Nucleotide Acid"], "correct": "Deoxyribonucleic Acid"},
+  {"cat": "Everyday Science", "diff": "medium", "q": "Which part of a plant cell is mainly responsible for carrying out photosynthesis?", "opts": ["Chloroplast", "Nucleus", "Mitochondria", "Cell wall"], "correct": "Chloroplast"},
+  {"cat": "Everyday Science", "diff": "easy", "q": "Camels store fat, used as an energy reserve, mainly in which part of their body?", "opts": ["Hump", "Legs", "Tail", "Neck"], "correct": "Hump"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Japan?", "opts": ["Tokyo", "Osaka", "Kyoto", "Yokohama"], "correct": "Tokyo"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of France?", "opts": ["Paris", "Lyon", "Marseille", "Nice"], "correct": "Paris"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of China?", "opts": ["Beijing", "Shanghai", "Hong Kong", "Guangzhou"], "correct": "Beijing"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Russia?", "opts": ["Moscow", "St. Petersburg", "Novosibirsk", "Kazan"], "correct": "Moscow"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Canada?", "opts": ["Ottawa", "Toronto", "Vancouver", "Montreal"], "correct": "Ottawa"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of Australia?", "opts": ["Canberra", "Sydney", "Melbourne", "Perth"], "correct": "Canberra"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Italy?", "opts": ["Rome", "Milan", "Venice", "Naples"], "correct": "Rome"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Germany?", "opts": ["Berlin", "Munich", "Frankfurt", "Hamburg"], "correct": "Berlin"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Egypt?", "opts": ["Cairo", "Alexandria", "Giza", "Luxor"], "correct": "Cairo"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of Turkey?", "opts": ["Ankara", "Istanbul", "Izmir", "Bursa"], "correct": "Ankara"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Saudi Arabia?", "opts": ["Riyadh", "Jeddah", "Makkah", "Madinah"], "correct": "Riyadh"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Iran?", "opts": ["Tehran", "Isfahan", "Shiraz", "Mashhad"], "correct": "Tehran"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Afghanistan?", "opts": ["Kabul", "Kandahar", "Herat", "Mazar-i-Sharif"], "correct": "Kabul"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Bangladesh?", "opts": ["Dhaka", "Chittagong", "Khulna", "Sylhet"], "correct": "Dhaka"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Nepal?", "opts": ["Kathmandu", "Pokhara", "Lalitpur", "Biratnagar"], "correct": "Kathmandu"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of the Netherlands?", "opts": ["Amsterdam", "The Hague", "Rotterdam", "Utrecht"], "correct": "Amsterdam"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of Switzerland?", "opts": ["Bern", "Zurich", "Geneva", "Basel"], "correct": "Bern"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the capital of Spain?", "opts": ["Madrid", "Barcelona", "Seville", "Valencia"], "correct": "Madrid"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of Brazil?", "opts": ["Brasília", "Rio de Janeiro", "São Paulo", "Salvador"], "correct": "Brasília"},
+  {"cat": "World GK", "diff": "medium", "q": "What is the capital of Chile?", "opts": ["Santiago", "Valparaíso", "Concepción", "La Serena"], "correct": "Santiago"},
+  {"cat": "World GK", "diff": "medium", "q": "Siam is the former/old name of which present-day country?", "opts": ["Thailand", "Vietnam", "Cambodia", "Myanmar"], "correct": "Thailand"},
+  {"cat": "World GK", "diff": "medium", "q": "Which country is traditionally known as the 'Land of White Elephants'?", "opts": ["Thailand", "Myanmar", "Laos", "Sri Lanka"], "correct": "Thailand"},
+  {"cat": "World GK", "diff": "hard", "q": "Which Himalayan kingdom is known as the 'Land of the Thunder Dragon'?", "opts": ["Bhutan", "Nepal", "Sikkim", "Tibet"], "correct": "Bhutan"},
+  {"cat": "World GK", "diff": "medium", "q": "Which country is traditionally known as the 'Land of Golden Pagodas'?", "opts": ["Myanmar", "Thailand", "Cambodia", "Laos"], "correct": "Myanmar"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the smallest continent by land area?", "opts": ["Australia", "Europe", "Antarctica", "South America"], "correct": "Australia"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the longest continental mountain range in the world?", "opts": ["The Andes", "The Himalayas", "The Rockies", "The Alps"], "correct": "The Andes"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the highest mountain range in the world, home to Mount Everest?", "opts": ["The Himalayas", "The Andes", "The Alps", "The Karakoram"], "correct": "The Himalayas"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the largest hot desert in the world?", "opts": ["Sahara Desert", "Thar Desert", "Gobi Desert", "Kalahari Desert"], "correct": "Sahara Desert"},
+  {"cat": "World GK", "diff": "hard", "q": "Which is considered the largest desert in the world overall, once cold deserts are included?", "opts": ["Antarctic Desert", "Sahara Desert", "Arabian Desert", "Gobi Desert"], "correct": "Antarctic Desert"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the largest island in the world?", "opts": ["Greenland", "Madagascar", "Borneo", "New Guinea"], "correct": "Greenland"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the smallest of the world's oceans?", "opts": ["Arctic Ocean", "Indian Ocean", "Atlantic Ocean", "Southern Ocean"], "correct": "Arctic Ocean"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the deepest ocean in the world?", "opts": ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean", "Arctic Ocean"], "correct": "Pacific Ocean"},
+  {"cat": "World GK", "diff": "medium", "q": "Which ocean lies between Africa and Australia?", "opts": ["Indian Ocean", "Pacific Ocean", "Atlantic Ocean", "Arctic Ocean"], "correct": "Indian Ocean"},
+  {"cat": "World GK", "diff": "medium", "q": "The Strait of Gibraltar connects the Mediterranean Sea to which ocean?", "opts": ["Atlantic Ocean", "Indian Ocean", "Pacific Ocean", "Arctic Ocean"], "correct": "Atlantic Ocean"},
+  {"cat": "World GK", "diff": "medium", "q": "The Strait of Hormuz, a key oil-shipping route, connects the Persian Gulf with which body of water?", "opts": ["Gulf of Oman", "Red Sea", "Arabian Sea", "Gulf of Aden"], "correct": "Gulf of Oman"},
+  {"cat": "World GK", "diff": "easy", "q": "The Suez Canal connects the Mediterranean Sea with which sea?", "opts": ["Red Sea", "Arabian Sea", "Black Sea", "Caspian Sea"], "correct": "Red Sea"},
+  {"cat": "World GK", "diff": "easy", "q": "The Panama Canal connects which two oceans?", "opts": ["Atlantic and Pacific", "Indian and Atlantic", "Pacific and Indian", "Arctic and Atlantic"], "correct": "Atlantic and Pacific"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the longest river in Europe?", "opts": ["Volga", "Danube", "Rhine", "Seine"], "correct": "Volga"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the longest river in Africa?", "opts": ["Nile", "Congo", "Niger", "Zambezi"], "correct": "Nile"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the longest river in Asia?", "opts": ["Yangtze", "Yellow River", "Mekong", "Ganges"], "correct": "Yangtze"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the longest river in South America?", "opts": ["Amazon", "Paraná", "Orinoco", "São Francisco"], "correct": "Amazon"},
+  {"cat": "World GK", "diff": "medium", "q": "Which river forms part of the border between the USA and Mexico?", "opts": ["Rio Grande", "Colorado River", "Mississippi River", "Missouri River"], "correct": "Rio Grande"},
+  {"cat": "World GK", "diff": "easy", "q": "Which river flows through the city of London?", "opts": ["Thames", "Seine", "Rhine", "Danube"], "correct": "Thames"},
+  {"cat": "World GK", "diff": "medium", "q": "Which river flows through the city of Paris?", "opts": ["Seine", "Thames", "Rhine", "Loire"], "correct": "Seine"},
+  {"cat": "World GK", "diff": "medium", "q": "Which river flows through the city of Rome?", "opts": ["Tiber", "Po", "Arno", "Seine"], "correct": "Tiber"},
+  {"cat": "World GK", "diff": "medium", "q": "Which major river flows through Iraq and past Baghdad?", "opts": ["Tigris", "Nile", "Jordan", "Euphrates"], "correct": "Tigris"},
+  {"cat": "World GK", "diff": "easy", "q": "Which river flows through Cairo, Egypt?", "opts": ["Nile", "Tigris", "Congo", "Niger"], "correct": "Nile"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the highest peak in Africa?", "opts": ["Mount Kilimanjaro", "Mount Kenya", "Mount Stanley", "Atlas Peak"], "correct": "Mount Kilimanjaro"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the highest peak in Europe?", "opts": ["Mount Elbrus", "Mont Blanc", "Matterhorn", "Mount Olympus"], "correct": "Mount Elbrus"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the highest peak in South America?", "opts": ["Aconcagua", "Chimborazo", "Huascarán", "Cotopaxi"], "correct": "Aconcagua"},
+  {"cat": "World GK", "diff": "medium", "q": "Which is the highest peak in North America?", "opts": ["Denali (Mount McKinley)", "Mount Logan", "Pico de Orizaba", "Mount Whitney"], "correct": "Denali (Mount McKinley)"},
+  {"cat": "World GK", "diff": "easy", "q": "Which is the highest and most famous mountain (an active volcano) in Japan?", "opts": ["Mount Fuji", "Mount Aso", "Mount Bandai", "Mount Yotei"], "correct": "Mount Fuji"},
+  {"cat": "World GK", "diff": "medium", "q": "Which mountain range is generally considered the natural boundary between Europe and Asia within Russia?", "opts": ["Ural Mountains", "Caucasus Mountains", "Carpathian Mountains", "Alps"], "correct": "Ural Mountains"},
+  {"cat": "World GK", "diff": "medium", "q": "Which mountain range lies along the border between France and Spain?", "opts": ["Pyrenees", "Alps", "Apennines", "Carpathians"], "correct": "Pyrenees"},
+  {"cat": "World GK", "diff": "medium", "q": "Which mountain range is located in North Africa, stretching across Morocco, Algeria and Tunisia?", "opts": ["Atlas Mountains", "Ahaggar Mountains", "Ethiopian Highlands", "Drakensberg"], "correct": "Atlas Mountains"},
+  {"cat": "World GK", "diff": "easy", "q": "The Great Barrier Reef, the world's largest coral reef system, lies off the coast of which country?", "opts": ["Australia", "Indonesia", "Philippines", "Fiji"], "correct": "Australia"},
+  {"cat": "World GK", "diff": "easy", "q": "The Statue of Liberty is located in which city?", "opts": ["New York", "Washington D.C.", "Boston", "Philadelphia"], "correct": "New York"},
+  {"cat": "World GK", "diff": "easy", "q": "The Eiffel Tower is located in which city?", "opts": ["Paris", "London", "Rome", "Berlin"], "correct": "Paris"},
+  {"cat": "World GK", "diff": "easy", "q": "The Great Wall is located in which country?", "opts": ["China", "Japan", "Mongolia", "North Korea"], "correct": "China"},
+  {"cat": "World GK", "diff": "easy", "q": "The Pyramids of Giza are located in which country?", "opts": ["Egypt", "Sudan", "Jordan", "Iraq"], "correct": "Egypt"},
+  {"cat": "World GK", "diff": "easy", "q": "The Taj Mahal is located in which country?", "opts": ["India", "Pakistan", "Bangladesh", "Nepal"], "correct": "India"},
+  {"cat": "World GK", "diff": "easy", "q": "The ancient Colosseum is located in which city?", "opts": ["Rome", "Athens", "Naples", "Venice"], "correct": "Rome"},
+  {"cat": "World GK", "diff": "hard", "q": "The ancient Lighthouse of Alexandria, one of the Seven Wonders of the Ancient World, was located in which country?", "opts": ["Egypt", "Greece", "Turkey", "Italy"], "correct": "Egypt"},
+  {"cat": "World GK", "diff": "medium", "q": "In which year did World War I begin?", "opts": ["1914", "1918", "1939", "1905"], "correct": "1914"},
+  {"cat": "World GK", "diff": "medium", "q": "In which year did World War I end?", "opts": ["1918", "1914", "1945", "1920"], "correct": "1918"},
+  {"cat": "World GK", "diff": "medium", "q": "In which year did World War II begin?", "opts": ["1939", "1914", "1945", "1941"], "correct": "1939"},
+  {"cat": "World GK", "diff": "medium", "q": "In which year did World War II end?", "opts": ["1945", "1939", "1918", "1950"], "correct": "1945"},
+  {"cat": "World GK", "diff": "medium", "q": "In which year did the French Revolution begin?", "opts": ["1789", "1776", "1799", "1804"], "correct": "1789"},
+  {"cat": "World GK", "diff": "medium", "q": "Which famous 1789 event, involving the capture of a Paris fortress-prison, is seen as the start of the French Revolution?", "opts": ["Storming of the Bastille", "Reign of Terror", "Coronation of Napoleon", "Treaty of Versailles"], "correct": "Storming of the Bastille"},
+  {"cat": "World GK", "diff": "easy", "q": "Who was the first person to walk on the Moon?", "opts": ["Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"], "correct": "Neil Armstrong"},
+  {"cat": "World GK", "diff": "medium", "q": "Who was the first human to travel into outer space?", "opts": ["Yuri Gagarin", "Neil Armstrong", "Alan Shepard", "John Glenn"], "correct": "Yuri Gagarin"},
+  {"cat": "World GK", "diff": "easy", "q": "Who is credited with inventing the telephone?", "opts": ["Alexander Graham Bell", "Thomas Edison", "Guglielmo Marconi", "Nikola Tesla"], "correct": "Alexander Graham Bell"},
+  {"cat": "World GK", "diff": "easy", "q": "Who is credited with inventing the practical incandescent electric light bulb?", "opts": ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Michael Faraday"], "correct": "Thomas Edison"},
+  {"cat": "World GK", "diff": "medium", "q": "Who is credited with inventing the printing press with movable type in Europe?", "opts": ["Johannes Gutenberg", "William Caxton", "Leonardo da Vinci", "Johann Faust"], "correct": "Johannes Gutenberg"},
+  {"cat": "World GK", "diff": "medium", "q": "Who is credited with inventing the World Wide Web?", "opts": ["Tim Berners-Lee", "Bill Gates", "Steve Jobs", "Vint Cerf"], "correct": "Tim Berners-Lee"},
+  {"cat": "World GK", "diff": "medium", "q": "Who was the first woman to win a Nobel Prize?", "opts": ["Marie Curie", "Mother Teresa", "Malala Yousafzai", "Pearl S. Buck"], "correct": "Marie Curie"},
+  {"cat": "World GK", "diff": "hard", "q": "Marie Curie is the only person to win Nobel Prizes in two different sciences. Which two fields were they?", "opts": ["Physics and Chemistry", "Physics and Medicine", "Chemistry and Medicine", "Medicine and Peace"], "correct": "Physics and Chemistry"},
+  {"cat": "World GK", "diff": "easy", "q": "Who wrote the famous tragedy play 'Romeo and Juliet'?", "opts": ["William Shakespeare", "Charles Dickens", "Jane Austen", "Thomas Hardy"], "correct": "William Shakespeare"},
+  {"cat": "World GK", "diff": "medium", "q": "Who wrote the novel 'A Tale of Two Cities'?", "opts": ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Victor Hugo"], "correct": "Charles Dickens"},
+  {"cat": "World GK", "diff": "medium", "q": "Who is the author of 'Das Kapital', a foundational text of communist economic theory?", "opts": ["Karl Marx", "Friedrich Engels", "Vladimir Lenin", "Adam Smith"], "correct": "Karl Marx"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the official currency of Japan?", "opts": ["Yen", "Won", "Yuan", "Ringgit"], "correct": "Yen"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the official currency of the United Kingdom?", "opts": ["Pound Sterling", "Euro", "Dollar", "Franc"], "correct": "Pound Sterling"},
+  {"cat": "World GK", "diff": "easy", "q": "What is the official currency of the United States?", "opts": ["US Dollar", "Pound", "Euro", "Peso"], "correct": "US Dollar"},
+  {"cat": "World GK", "diff": "medium", "q": "Where is the headquarters of the International Court of Justice located?", "opts": ["The Hague, Netherlands", "Geneva, Switzerland", "New York, USA", "Brussels, Belgium"], "correct": "The Hague, Netherlands"},
+  {"cat": "World GK", "diff": "medium", "q": "Where is the headquarters of the World Health Organization (WHO) located?", "opts": ["Geneva, Switzerland", "New York, USA", "Paris, France", "Vienna, Austria"], "correct": "Geneva, Switzerland"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "What does 'ROM' stand for in computing?", "opts": ["Read Only Memory", "Random Output Memory", "Read Output Module", "Random Only Memory"], "correct": "Read Only Memory"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'URL' stand for?", "opts": ["Uniform Resource Locator", "Universal Reference Link", "United Resource Locator", "Uniform Reference Locator"], "correct": "Uniform Resource Locator"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'HTTP' stand for?", "opts": ["HyperText Transfer Protocol", "High Transfer Text Protocol", "HyperText Transmission Program", "Host Text Transfer Protocol"], "correct": "HyperText Transfer Protocol"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'HTML' stand for?", "opts": ["HyperText Markup Language", "High Text Markup Language", "HyperTransfer Markup Language", "HyperText Machine Language"], "correct": "HyperText Markup Language"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'LAN' stand for?", "opts": ["Local Area Network", "Large Area Network", "Linked Area Network", "Long Area Network"], "correct": "Local Area Network"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'WAN' stand for?", "opts": ["Wide Area Network", "World Area Network", "Wireless Area Network", "Wide Access Network"], "correct": "Wide Area Network"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'USB' stand for?", "opts": ["Universal Serial Bus", "United Serial Bus", "Universal System Bus", "Unified Serial Bus"], "correct": "Universal Serial Bus"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'PDF' stand for?", "opts": ["Portable Document Format", "Printable Document File", "Personal Document Format", "Portable Data File"], "correct": "Portable Document Format"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'GUI' stand for?", "opts": ["Graphical User Interface", "General User Interface", "Graphic Unified Interface", "Global User Interface"], "correct": "Graphical User Interface"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "What does 'OS' stand for in computing?", "opts": ["Operating System", "Output System", "Online System", "Operational Software"], "correct": "Operating System"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "What does 'WWW' stand for?", "opts": ["World Wide Web", "World Wide Wire", "Wide World Web", "World Web Wide"], "correct": "World Wide Web"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "In networking, what does 'IP' stand for (as in IP address)?", "opts": ["Internet Protocol", "Internal Protocol", "Internet Provider", "Intranet Protocol"], "correct": "Internet Protocol"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "What does 'CD' stand for?", "opts": ["Compact Disc", "Computer Disc", "Central Disc", "Circular Disc"], "correct": "Compact Disc"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'DVD' stand for?", "opts": ["Digital Versatile Disc", "Digital Video Drive", "Direct Video Disc", "Digital Visual Display"], "correct": "Digital Versatile Disc"},
+  {"cat": "Computer Basics", "diff": "hard", "q": "What does 'MS-DOS' stand for?", "opts": ["Microsoft Disk Operating System", "Multi-System Disk Operating System", "Microsoft Data Operating System", "Main System Disk Operating Software"], "correct": "Microsoft Disk Operating System"},
+  {"cat": "Computer Basics", "diff": "hard", "q": "What does 'SMTP' (used for sending email) stand for?", "opts": ["Simple Mail Transfer Protocol", "Standard Mail Transmission Protocol", "Secure Mail Transfer Protocol", "System Mail Transfer Program"], "correct": "Simple Mail Transfer Protocol"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "The microprocessor, which carries out most of a computer's processing, is popularly referred to as the ___ of the computer.", "opts": ["Brain", "Heart", "Eye", "Spine"], "correct": "Brain"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which company developed the Microsoft Windows operating system?", "opts": ["Microsoft", "Apple", "Google", "IBM"], "correct": "Microsoft"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which company owns and operates the Gmail email service?", "opts": ["Google", "Microsoft", "Yahoo", "Apple"], "correct": "Google"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which of the following is an example of an output device?", "opts": ["Printer", "Keyboard", "Mouse", "Scanner"], "correct": "Printer"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which of the following is an example of a data storage device?", "opts": ["Hard Disk", "Monitor", "Speaker", "Printer"], "correct": "Hard Disk"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Who is widely regarded as the 'Father of the Computer' for designing the Analytical Engine?", "opts": ["Charles Babbage", "Alan Turing", "John von Neumann", "Bill Gates"], "correct": "Charles Babbage"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "Who is widely regarded as the 'Father of Computer Science' for his foundational work on computation?", "opts": ["Alan Turing", "Charles Babbage", "Steve Jobs", "Dennis Ritchie"], "correct": "Alan Turing"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What does 'CSS' (used to style web pages) stand for?", "opts": ["Cascading Style Sheets", "Computer Style Sheets", "Creative Style System", "Coded Style Syntax"], "correct": "Cascading Style Sheets"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut is used to Paste?", "opts": ["Ctrl+V", "Ctrl+C", "Ctrl+X", "Ctrl+P"], "correct": "Ctrl+V"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut is used to Cut?", "opts": ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Ctrl+Z"], "correct": "Ctrl+X"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut is used to Undo the last action?", "opts": ["Ctrl+Z", "Ctrl+Y", "Ctrl+U", "Ctrl+X"], "correct": "Ctrl+Z"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut is used to Save a file?", "opts": ["Ctrl+S", "Ctrl+D", "Ctrl+F", "Ctrl+W"], "correct": "Ctrl+S"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut is used to Print a document?", "opts": ["Ctrl+P", "Ctrl+R", "Ctrl+T", "Ctrl+O"], "correct": "Ctrl+P"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "In most Windows applications, which keyboard shortcut selects all content?", "opts": ["Ctrl+A", "Ctrl+S", "Ctrl+E", "Ctrl+F"], "correct": "Ctrl+A"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "Which function key is commonly used to refresh a web page in most browsers?", "opts": ["F5", "F2", "F8", "F11"], "correct": "F5"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "Which device converts digital signals to analog signals and back, enabling internet connectivity over telephone lines?", "opts": ["Modem", "Router", "Switch", "Hub"], "correct": "Modem"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "A computer virus is best described as?", "opts": ["Malicious software that can replicate and spread to other programs or systems", "A hardware component that speeds up a computer", "A type of antivirus software", "A backup storage device"], "correct": "Malicious software that can replicate and spread to other programs or systems"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "Which network device is primarily used to connect multiple devices and direct data traffic between them?", "opts": ["Router", "Monitor", "Scanner", "Printer"], "correct": "Router"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "Which type of computer memory loses all its stored data when the power is turned off?", "opts": ["RAM (volatile memory)", "ROM", "Hard Disk", "Flash Drive"], "correct": "RAM (volatile memory)"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which company developed the Google Chrome web browser?", "opts": ["Google", "Microsoft", "Mozilla", "Apple"], "correct": "Google"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which of the following is a widely used spreadsheet software?", "opts": ["Microsoft Excel", "Microsoft Word", "Adobe Photoshop", "Microsoft PowerPoint"], "correct": "Microsoft Excel"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "Which of the following is a widely used word processing software?", "opts": ["Microsoft Word", "Microsoft Excel", "Adobe Photoshop", "VLC Media Player"], "correct": "Microsoft Word"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What is the modern default file extension for a Microsoft Word document?", "opts": [".docx", ".xlsx", ".pptx", ".pdf"], "correct": ".docx"},
+  {"cat": "Computer Basics", "diff": "medium", "q": "What is the modern default file extension for a Microsoft Excel spreadsheet?", "opts": [".xlsx", ".docx", ".pptx", ".csv"], "correct": ".xlsx"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "A structured collection of related data, organized for easy access and management, is called a?", "opts": ["Database", "Spreadsheet", "Directory", "Archive"], "correct": "Database"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "The process of transferring a file from the internet onto your own computer is called?", "opts": ["Download", "Upload", "Export", "Sync"], "correct": "Download"},
+  {"cat": "Computer Basics", "diff": "easy", "q": "The process of transferring a file from your computer onto the internet is called?", "opts": ["Upload", "Download", "Import", "Cache"], "correct": "Upload"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "What is the antonym (opposite) of 'Generous'?", "opts": ["Stingy", "Kind", "Giving", "Helpful"], "correct": "Stingy"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What is the closest synonym of the word 'Obfuscate'?", "opts": ["To confuse", "To clarify", "To celebrate", "To ignore"], "correct": "To confuse"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What is the closest synonym of the word 'Dank'?", "opts": ["Damp", "Broken", "Hard", "Bright"], "correct": "Damp"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "The idiom 'A hard nut to crack' means?", "opts": ["A difficult problem", "An easy question", "An expensive item", "A foolish idea"], "correct": "A difficult problem"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "The idiom 'Kick the bucket' means?", "opts": ["To die", "To achieve a goal", "To fail badly", "To lose one's temper"], "correct": "To die"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "The idiom 'A bed of roses' means?", "opts": ["A comfortable, easy situation", "A difficult situation", "A garden full of flowers", "A dangerous place"], "correct": "A comfortable, easy situation"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "The idiom 'Once in a blue moon' means?", "opts": ["Very rarely", "Very often", "Every night", "Never"], "correct": "Very rarely"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "The idiom 'Burn the midnight oil' means?", "opts": ["To work or study late into the night", "To waste resources", "To relax after work", "To cook a late dinner"], "correct": "To work or study late into the night"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "The idiom 'Break the ice' means?", "opts": ["To initiate conversation in an awkward situation", "To end a friendship", "To cause a conflict", "To cool down a heated argument"], "correct": "To initiate conversation in an awkward situation"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "The idiom 'A blessing in disguise' means?", "opts": ["Something that seems bad at first but turns out to be good", "A gift given secretly", "A prayer said in private", "Something that is truly bad"], "correct": "Something that seems bad at first but turns out to be good"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Who is credited with inventing the modern ballpoint pen?", "opts": ["László Bíró", "Thomas Edison", "Alexander Graham Bell", "James Watt"], "correct": "László Bíró"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Who invented dynamite and later established the Nobel Prizes with his fortune?", "opts": ["Alfred Nobel", "Thomas Edison", "Robert Oppenheimer", "Michael Faraday"], "correct": "Alfred Nobel"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "Who is credited with building and flying the first successful powered airplane?", "opts": ["The Wright Brothers", "Alberto Santos-Dumont", "Charles Lindbergh", "Otto Lilienthal"], "correct": "The Wright Brothers"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Who is credited with major improvements to the steam engine that helped power the Industrial Revolution?", "opts": ["James Watt", "Thomas Edison", "George Stephenson", "Michael Faraday"], "correct": "James Watt"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "One kilometer is equal to how many meters?", "opts": ["1,000", "100", "10,000", "500"], "correct": "1,000"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "One kilogram is equal to how many grams?", "opts": ["1,000", "100", "10,000", "500"], "correct": "1,000"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Which unit is used to measure electrical resistance?", "opts": ["Ohm", "Volt", "Ampere", "Watt"], "correct": "Ohm"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Which unit is used to measure electrical potential difference (voltage)?", "opts": ["Volt", "Ohm", "Ampere", "Watt"], "correct": "Volt"},
+  {"cat": "General Knowledge", "diff": "hard", "q": "Which SI unit is used to measure the amount of a substance?", "opts": ["Mole", "Gram", "Litre", "Joule"], "correct": "Mole"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Which unit is used to measure the intensity (loudness) of sound?", "opts": ["Decibel", "Hertz", "Watt", "Ohm"], "correct": "Decibel"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "Which unit is commonly used to measure computer data storage?", "opts": ["Byte", "Volt", "Watt", "Hertz"], "correct": "Byte"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "How many bits make up one byte?", "opts": ["8", "4", "16", "10"], "correct": "8"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "What does the abbreviation 'WHO' stand for?", "opts": ["World Health Organization", "World Humanitarian Organization", "World Health Office", "World Hygiene Organization"], "correct": "World Health Organization"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'UNESCO' stand for?", "opts": ["United Nations Educational, Scientific and Cultural Organization", "United Nations Economic and Social Council Organization", "United Nations Environmental and Scientific Cooperation Office", "United Nations Emergency Scientific and Cultural Organization"], "correct": "United Nations Educational, Scientific and Cultural Organization"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'UNICEF' stand for?", "opts": ["United Nations International Children's Emergency Fund", "United Nations Interim Children's Education Foundation", "United Nations Institute for Children's Educational Fund", "United Nations Children's Emergency Fellowship"], "correct": "United Nations International Children's Emergency Fund"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'OIC' stand for?", "opts": ["Organisation of Islamic Cooperation", "Organization of Intercontinental Cooperation", "Organisation of International Commerce", "Organization for Islamic Communities"], "correct": "Organisation of Islamic Cooperation"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'SAARC' stand for?", "opts": ["South Asian Association for Regional Cooperation", "South Asian Alliance for Regional Commerce", "Southeast Asian Association for Regional Cooperation", "South Asian Assembly for Regional Coordination"], "correct": "South Asian Association for Regional Cooperation"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'NATO' stand for?", "opts": ["North Atlantic Treaty Organization", "National Alliance Treaty Organization", "North American Treaty Organization", "New Atlantic Trade Organization"], "correct": "North Atlantic Treaty Organization"},
+  {"cat": "General Knowledge", "diff": "hard", "q": "What does the abbreviation 'ASEAN' stand for?", "opts": ["Association of Southeast Asian Nations", "Alliance of South and East Asian Nations", "Association of South Eastern African Nations", "Asian Economic Association of Nations"], "correct": "Association of Southeast Asian Nations"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'GDP' stand for in economics?", "opts": ["Gross Domestic Product", "General Domestic Product", "Gross Development Plan", "Global Domestic Production"], "correct": "Gross Domestic Product"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "What does the abbreviation 'AIDS' stand for?", "opts": ["Acquired Immunodeficiency Syndrome", "Auto Immune Disease Syndrome", "Acquired Infectious Disease Syndrome", "Advanced Immune Deficiency System"], "correct": "Acquired Immunodeficiency Syndrome"},
+  {"cat": "General Knowledge", "diff": "hard", "q": "The word 'LASER' is an acronym that stands for?", "opts": ["Light Amplification by Stimulated Emission of Radiation", "Long Amplitude Signal Emission Radiation", "Light Amplitude by Sound Emission Radiation", "Laser Amplification of Stimulated Energy Radiation"], "correct": "Light Amplification by Stimulated Emission of Radiation"},
+  {"cat": "General Knowledge", "diff": "hard", "q": "The word 'RADAR' is an acronym that stands for?", "opts": ["Radio Detection and Ranging", "Radio Direction and Reception", "Rapid Detection and Response", "Radio Amplitude Detection and Recording"], "correct": "Radio Detection and Ranging"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "In which sport is the term 'Love' used to denote a score of zero?", "opts": ["Tennis", "Cricket", "Football", "Badminton"], "correct": "Tennis"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "In which board game is the term 'Checkmate' used?", "opts": ["Chess", "Ludo", "Carrom", "Backgammon"], "correct": "Chess"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "How many players from each team are on the field in a standard game of football (soccer)?", "opts": ["11", "9", "10", "12"], "correct": "11"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "How many players from each team are on the court at one time in a standard basketball game?", "opts": ["5", "6", "7", "4"], "correct": "5"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "How many players make up a standard cricket team?", "opts": ["11", "10", "12", "9"], "correct": "11"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "In cricket, what is the term used when a batsman is dismissed without scoring a single run?", "opts": ["Duck", "Golden Boot", "Blank", "Zero Strike"], "correct": "Duck"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "The Olympic Games are traditionally held once every how many years?", "opts": ["4 years", "2 years", "5 years", "3 years"], "correct": "4 years"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "How many interlocking rings appear on the Olympic flag?", "opts": ["5", "4", "6", "7"], "correct": "5"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "The Davis Cup is a major international team competition in which sport?", "opts": ["Tennis", "Golf", "Badminton", "Table Tennis"], "correct": "Tennis"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "Which of the following is one of the four Grand Slam tournaments in tennis?", "opts": ["Wimbledon", "The Masters", "The Ashes", "Ryder Cup"], "correct": "Wimbledon"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "Which sport is traditionally nicknamed the 'Gentleman's Game'?", "opts": ["Cricket", "Football", "Hockey", "Golf"], "correct": "Cricket"},
+  {"cat": "General Knowledge", "diff": "medium", "q": "The modern sport of cricket is widely credited as having originated in which country?", "opts": ["England", "Australia", "India", "West Indies"], "correct": "England"},
+  {"cat": "General Knowledge", "diff": "easy", "q": "What is the standard duration of a football (soccer) match, excluding stoppage time?", "opts": ["90 minutes", "60 minutes", "80 minutes", "120 minutes"], "correct": "90 minutes"},
+];
+
+// ---------------- Scoreboard (persistent via localStorage) ----------------
+const SCOREBOARD_KEY = 'fiaCbtScoreboardV1';
+
+function loadScoreboard() {
+  try {
+    const raw = localStorage.getItem(SCOREBOARD_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveScoreboardEntry(entry) {
+  const board = loadScoreboard();
+  board.push(entry);
+  localStorage.setItem(SCOREBOARD_KEY, JSON.stringify(board));
+}
+
+function renderScoreboard() {
+  const board = loadScoreboard().slice().sort((a, b) => {
+    if (b.pct !== a.pct) return b.pct - a.pct;
+    return b.score - a.score;
+  });
+  const body = document.getElementById('scoreboard-body');
+  const empty = document.getElementById('scoreboard-empty');
+  const table = document.getElementById('scoreboard-table');
+  body.innerHTML = '';
+
+  if (board.length === 0) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  table.style.display = 'table';
+  empty.style.display = 'none';
+
+  board.forEach((entry, i) => {
+    const tr = document.createElement('tr');
+    const regionLabel = entry.region === 'international' ? 'Intl' : 'Pakistan';
+    [i + 1, entry.name, `${entry.difficulty.toUpperCase()} · ${regionLabel}`, `${entry.score}/${entry.total}`, `${entry.pct}%`, entry.date].forEach(val => {
+      const td = document.createElement('td');
+      td.textContent = val;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+document.getElementById('view-scoreboard-btn').addEventListener('click', () => {
+  renderScoreboard();
+  showScreen('scoreboard-screen');
+});
+document.getElementById('end-scoreboard-btn').addEventListener('click', () => {
+  renderScoreboard();
+  showScreen('scoreboard-screen');
+});
+document.getElementById('scoreboard-back-btn').addEventListener('click', () => {
+  showScreen('start-screen');
+});
+document.getElementById('clear-scoreboard-btn').addEventListener('click', () => {
+  if (confirm('Clear all saved scoreboard history on this device? This cannot be undone.')) {
+    localStorage.removeItem(SCOREBOARD_KEY);
+    renderScoreboard();
+  }
+});
+
+// ---------------- State ----------------
+let state = {
+  name: "",
+  difficulty: "",
+  questions: [],   // selected + shuffled questions for this run, each with shuffled opts
+  current: 0,
+  score: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  review: []
+};
+
+// ---------------- Helpers ----------------
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const PK_ONLY_CATEGORIES = new Set(["Pakistan Studies", "Current Affairs & Govt"]);
+
+function selectQuestions(difficulty, region) {
+  const base = region === "international" ? BANK.filter(q => !PK_ONLY_CATEGORIES.has(q.cat)) : BANK;
+  const pool = shuffle(base);
+  let picked;
+  if (difficulty === "easy") {
+    picked = pool.filter(q => q.diff === "easy").slice(0, 15);
+  } else if (difficulty === "medium") {
+    const nonEasy = pool.filter(q => q.diff !== "easy");
+    const easyFill = pool.filter(q => q.diff === "easy").slice(0, Math.max(0, 30 - nonEasy.length));
+    picked = shuffle([...nonEasy, ...easyFill]).slice(0, 30);
+  } else {
+    picked = pool.slice(0, 50);
+  }
+  return shuffle(picked).map(q => ({
+    ...q,
+    shuffledOpts: shuffle(q.opts)
+  }));
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---------------- Start screen logic ----------------
+const nameInput = document.getElementById('player-name');
+const startBtn = document.getElementById('start-btn');
+let selectedDifficulty = null;
+let selectedRegion = null;
+
+document.querySelectorAll('.diff-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedDifficulty = card.dataset.difficulty;
+    validateStart();
+  });
+});
+
+document.querySelectorAll('.region-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.region-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedRegion = card.dataset.region;
+    validateStart();
+  });
+});
+
+nameInput.addEventListener('input', validateStart);
+
+function validateStart() {
+  startBtn.disabled = !(nameInput.value.trim().length > 0 && selectedDifficulty && selectedRegion);
+}
+
+startBtn.addEventListener('click', () => {
+  state.name = nameInput.value.trim();
+  state.difficulty = selectedDifficulty;
+  state.region = selectedRegion;
+  state.questions = selectQuestions(selectedDifficulty, selectedRegion);
+  state.current = 0;
+  state.score = 0;
+  state.correctCount = 0;
+  state.wrongCount = 0;
+  state.review = [];
+
+  document.getElementById('panel-name').textContent = state.name;
+  const badge = document.getElementById('panel-diff');
+  badge.textContent = selectedDifficulty.toUpperCase() + ' · ' + (selectedRegion === 'international' ? 'INTL' : 'PAKISTAN');
+  badge.className = 'diff-badge badge-' + selectedDifficulty;
+
+  showScreen('quiz-screen');
+  renderQuestion();
+});
+
+// ---------------- Quiz logic ----------------
+const qCountEl = document.getElementById('q-count');
+const qCategoryEl = document.getElementById('q-category');
+const qTextEl = document.getElementById('q-text');
+const optionsEl = document.getElementById('options');
+const nextBtn = document.getElementById('next-btn');
+const progressFill = document.getElementById('progress-fill');
+
+function renderQuestion() {
+  const total = state.questions.length;
+  const q = state.questions[state.current];
+
+  qCountEl.textContent = `QUESTION ${state.current + 1} OF ${total}`;
+  qCategoryEl.textContent = q.cat;
+  qTextEl.textContent = q.q;
+  progressFill.style.width = `${(state.current / total) * 100}%`;
+
+  optionsEl.innerHTML = '';
+  q.shuffledOpts.forEach(optText => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = optText;
+    btn.addEventListener('click', () => selectAnswer(btn, optText, q));
+    optionsEl.appendChild(btn);
+  });
+
+  nextBtn.style.display = 'none';
+  updatePanel();
+}
+
+function selectAnswer(btn, optText, q) {
+  if (btn.parentElement.dataset.locked === 'true') return;
+  optionsEl.dataset.locked = 'true';
+
+  const isCorrect = optText === q.correct;
+  const allOptions = Array.from(optionsEl.children);
+  allOptions.forEach(o => o.classList.add('locked'));
+
+  if (isCorrect) {
+    btn.classList.add('correct-flash');
+    state.score++;
+    state.correctCount++;
+  } else {
+    btn.classList.add('wrong-flash');
+    state.wrongCount++;
+  }
+
+  state.review.push({
+    question: q.q,
+    category: q.cat,
+    yourAnswer: optText,
+    correctAnswer: q.correct,
+    isCorrect: isCorrect
+  });
+
+  updatePanel();
+  nextBtn.textContent = (state.current === state.questions.length - 1) ? 'Finish Quiz →' : 'Next Question →';
+  nextBtn.style.display = 'inline-block';
+}
+
+nextBtn.addEventListener('click', () => {
+  optionsEl.dataset.locked = 'false';
+  state.current++;
+  if (state.current >= state.questions.length) {
+    finishQuiz();
+  } else {
+    renderQuestion();
+  }
+});
+
+function updatePanel() {
+  document.getElementById('panel-score').textContent = state.score;
+  document.getElementById('panel-score-sub').textContent = `Score (out of ${state.questions.length})`;
+  document.getElementById('stat-correct').textContent = state.correctCount;
+  document.getElementById('stat-wrong').textContent = state.wrongCount;
+  document.getElementById('stat-remaining').textContent = state.questions.length - (state.correctCount + state.wrongCount);
+}
+
+// ---------------- End screen ----------------
+function finishQuiz() {
+  progressFill.style.width = '100%';
+  const total = state.questions.length;
+  const pct = Math.round((state.score / total) * 100);
+
+  document.getElementById('result-score').textContent = `${state.name}: ${state.score} / ${total}`;
+  document.getElementById('result-pct').textContent = `${pct}% correct`;
+
+  let msg;
+  if (pct >= 80) msg = "Excellent! Exam-ready performance.";
+  else if (pct >= 60) msg = "Good effort — revise the weak spots below.";
+  else msg = "Needs more practice — review every question below.";
+  document.getElementById('result-msg').textContent = msg;
+
+  saveScoreboardEntry({
+    name: state.name,
+    difficulty: state.difficulty,
+    region: state.region,
+    score: state.score,
+    total: total,
+    pct: pct,
+    date: new Date().toLocaleString()
+  });
+
+  const reviewList = document.getElementById('review-list');
+  reviewList.innerHTML = '';
+  state.review.forEach((r, i) => {
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    const yourClass = r.isCorrect ? 'review-your-correct' : 'review-your-wrong';
+    let html = `<div class="review-q">${i + 1}. ${r.question}</div>`;
+    html += `<div class="review-ans ${yourClass}">Your answer: ${r.yourAnswer} ${r.isCorrect ? '✓' : '✗'}</div>`;
+    if (!r.isCorrect) {
+      html += `<div class="review-ans review-correct-answer">Correct answer: ${r.correctAnswer}</div>`;
+    }
+    item.innerHTML = html;
+    reviewList.appendChild(item);
+  });
+
+  showScreen('end-screen');
+}
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  nameInput.value = '';
+  selectedDifficulty = null;
+  selectedRegion = null;
+  document.querySelectorAll('.diff-card, .region-card').forEach(c => c.classList.remove('selected'));
+  startBtn.disabled = true;
+  showScreen('start-screen');
+});
+</script>
+</body>
+</html>
