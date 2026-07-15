@@ -245,6 +245,20 @@
   /* ---------- Scoreboard screen ---------- */
   #scoreboard-screen .card { padding: 40px; }
   .scoreboard-header { text-align: center; margin-bottom: 24px; }
+  .board-filters { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid #303a63;
+    color: #c3c9e0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .filter-btn:hover { border-color: #7c8cff; color: #eef1f8; }
+  .filter-btn.active { border-color: #7c8cff; background: #1a2144; color: #eef1f8; }
   #scoreboard-table-wrap { max-height: 420px; overflow-y: auto; overflow-x: auto; margin-bottom: 22px; }
   .scoreboard-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   .scoreboard-table th, .scoreboard-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #262f52; white-space: nowrap; }
@@ -348,7 +362,13 @@
   <div class="card">
     <div class="scoreboard-header">
       <div class="title" style="font-size:1.5rem;">🏆 Scoreboard</div>
-      <div class="subtitle" style="margin-bottom:0;">Saved on this device/browser — everyone who plays here shows up below</div>
+      <div class="subtitle" style="margin-bottom:0;">Live across every device — everyone who plays shows up below</div>
+    </div>
+    <div class="board-filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="easy">Easy</button>
+      <button class="filter-btn" data-filter="medium">Medium</button>
+      <button class="filter-btn" data-filter="hard">Hard</button>
     </div>
     <div id="scoreboard-table-wrap">
       <table class="scoreboard-table" id="scoreboard-table">
@@ -812,6 +832,9 @@ async function saveScoreboardEntry(entry) {
   }
 }
 
+let cachedBoard = [];
+let boardFilter = 'all';
+
 async function renderScoreboard() {
   const body = document.getElementById('scoreboard-body');
   const empty = document.getElementById('scoreboard-empty');
@@ -821,21 +844,34 @@ async function renderScoreboard() {
   empty.style.display = 'block';
   empty.textContent = 'Loading scoreboard...';
 
-  let board = [];
   try {
-    const q = query(collection(db, "scores"), orderBy("pct", "desc"), limit(200));
+    const q = query(collection(db, "scores"), orderBy("pct", "desc"), limit(300));
     const snap = await getDocs(q);
-    snap.forEach(doc => board.push(doc.data()));
+    cachedBoard = [];
+    snap.forEach(doc => cachedBoard.push(doc.data()));
   } catch (e) {
     console.error("Failed to load scoreboard:", e);
     empty.textContent = 'Could not load scoreboard — check your internet connection.';
     return;
   }
 
-  board.sort((a, b) => (b.pct - a.pct) || (b.score - a.score));
+  renderBoardFromCache();
+}
+
+function renderBoardFromCache() {
+  const body = document.getElementById('scoreboard-body');
+  const empty = document.getElementById('scoreboard-empty');
+  const table = document.getElementById('scoreboard-table');
+  body.innerHTML = '';
+
+  const board = (boardFilter === 'all' ? cachedBoard : cachedBoard.filter(e => e.difficulty === boardFilter))
+    .slice()
+    .sort((a, b) => (b.pct - a.pct) || (b.score - a.score));
 
   if (board.length === 0) {
-    empty.textContent = 'No attempts yet — finish a quiz to show up here.';
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    empty.textContent = 'No attempts yet in this difficulty — finish a quiz to show up here.';
     return;
   }
   table.style.display = 'table';
@@ -852,6 +888,15 @@ async function renderScoreboard() {
     body.appendChild(tr);
   });
 }
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    boardFilter = btn.dataset.filter;
+    renderBoardFromCache();
+  });
+});
 
 document.getElementById('view-scoreboard-btn').addEventListener('click', () => {
   showScreen('scoreboard-screen');
@@ -889,18 +934,46 @@ function shuffle(arr) {
 
 const PK_ONLY_CATEGORIES = new Set(["Pakistan Studies", "Current Affairs & Govt"]);
 
+// Round-robins across categories so every quiz spreads across many subjects
+// instead of randomly clustering into just one or two.
+function stratifiedPick(candidates, count) {
+  const byCat = {};
+  candidates.forEach(q => { (byCat[q.cat] = byCat[q.cat] || []).push(q); });
+  const cats = shuffle(Object.keys(byCat));
+  cats.forEach(cat => { byCat[cat] = shuffle(byCat[cat]); });
+
+  const picked = [];
+  let round = 0;
+  while (picked.length < count) {
+    let addedAny = false;
+    for (const cat of cats) {
+      if (picked.length >= count) break;
+      if (byCat[cat][round]) {
+        picked.push(byCat[cat][round]);
+        addedAny = true;
+      }
+    }
+    if (!addedAny) break;
+    round++;
+  }
+  return picked;
+}
+
 function selectQuestions(difficulty, region) {
   const base = region === "international" ? BANK.filter(q => !PK_ONLY_CATEGORIES.has(q.cat)) : BANK;
-  const pool = shuffle(base);
   let picked;
   if (difficulty === "easy") {
-    picked = pool.filter(q => q.diff === "easy").slice(0, 15);
+    picked = stratifiedPick(base.filter(q => q.diff === "easy"), 15);
   } else if (difficulty === "medium") {
-    const nonEasy = pool.filter(q => q.diff !== "easy");
-    const easyFill = pool.filter(q => q.diff === "easy").slice(0, Math.max(0, 30 - nonEasy.length));
-    picked = shuffle([...nonEasy, ...easyFill]).slice(0, 30);
+    const nonEasy = base.filter(q => q.diff !== "easy");
+    picked = stratifiedPick(nonEasy, 30);
+    if (picked.length < 30) {
+      const usedQs = new Set(picked.map(q => q.q));
+      const easyFill = base.filter(q => q.diff === "easy" && !usedQs.has(q.q));
+      picked = picked.concat(stratifiedPick(easyFill, 30 - picked.length));
+    }
   } else {
-    picked = pool.slice(0, 50);
+    picked = stratifiedPick(base, 50);
   }
   return shuffle(picked).map(q => ({
     ...q,
