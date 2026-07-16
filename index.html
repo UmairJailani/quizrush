@@ -68,25 +68,33 @@
   }
   #player-name:focus { outline: none; border-color: #7c8cff; }
 
-  .region-grid {
+  .subject-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+  .subject-toolbar .ghost-btn { flex: 0 0 auto; padding: 8px 14px; font-size: 0.75rem; }
+  .subject-count { color: #57e0c9; font-weight: 700; }
+
+  .subject-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
     margin-bottom: 28px;
   }
-  .region-card {
+  .subject-card {
     background: #0e1326;
     border: 2px solid #262f52;
     border-radius: 14px;
-    padding: 16px 14px;
+    padding: 14px 10px;
     cursor: pointer;
-    text-align: left;
+    text-align: center;
     transition: all 0.15s ease;
+    user-select: none;
   }
-  .region-card:hover { border-color: #4a56a0; transform: translateY(-2px); }
-  .region-card.selected { border-color: #57e0c9; background: #10222a; box-shadow: 0 0 0 3px rgba(87,224,201,0.2); }
-  .region-name { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
-  .region-desc { font-size: 0.78rem; color: #c3c9e0; line-height: 1.4; }
+  .subject-card:hover { border-color: #4a56a0; transform: translateY(-2px); }
+  .subject-card.selected { border-color: #57e0c9; background: #10222a; box-shadow: 0 0 0 3px rgba(87,224,201,0.2); }
+  .subject-icon { display: block; font-size: 1.4rem; margin-bottom: 6px; }
+  .subject-name { font-weight: 700; font-size: 0.78rem; line-height: 1.3; }
+  @media (max-width: 720px) {
+    .subject-grid { grid-template-columns: repeat(2, 1fr); }
+  }
 
   .difficulty-grid {
     display: grid;
@@ -136,7 +144,7 @@
   @media (max-width: 720px) {
     .quiz-layout { grid-template-columns: 1fr; }
     .difficulty-grid { grid-template-columns: 1fr; }
-    .region-grid { grid-template-columns: 1fr; }
+    .subject-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   .progress-bar-track {
@@ -275,21 +283,27 @@
   <div class="card">
     <div class="top-actions"><button id="view-scoreboard-btn" class="ghost-btn">🏆 Scoreboard</button></div>
     <div class="title">FIA Assistant CBT Challenge</div>
-    <div class="subtitle">General Knowledge practice test — pick your difficulty and go</div>
+    <div class="subtitle">English, Maths, Psychology, Pakistan Studies & more — pick your subjects and go</div>
 
     <label class="field-label" for="player-name">Your Name</label>
     <input type="text" id="player-name" placeholder="Enter your name" maxlength="30">
 
-    <label class="field-label">Choose Question Set</label>
-    <div class="region-grid">
-      <div class="region-card" data-region="pakistan">
-        <div class="region-name">🇵🇰 Pakistan-Focused</div>
-        <div class="region-desc">Includes Pakistan Studies & Govt questions — matches the actual FIA CBT syllabus.</div>
-      </div>
-      <div class="region-card" data-region="international">
-        <div class="region-name">🌍 International</div>
-        <div class="region-desc">Universal General Knowledge only — no Pakistan-specific Studies/Govt questions.</div>
-      </div>
+    <label class="field-label">Choose Subjects <span class="subject-count" id="subject-count"></span></label>
+    <div class="subject-toolbar">
+      <button type="button" id="select-all-btn" class="ghost-btn">Select All</button>
+      <button type="button" id="clear-subjects-btn" class="ghost-btn">Clear</button>
+    </div>
+    <div class="subject-grid" id="subject-grid">
+      <div class="subject-card" data-subject="Pakistan Studies"><span class="subject-icon">🇵🇰</span><span class="subject-name">Pakistan Studies</span></div>
+      <div class="subject-card" data-subject="Current Affairs & Govt"><span class="subject-icon">🏛️</span><span class="subject-name">Current Affairs &amp; Govt</span></div>
+      <div class="subject-card" data-subject="World GK"><span class="subject-icon">🌍</span><span class="subject-name">World GK</span></div>
+      <div class="subject-card" data-subject="Islamic Studies"><span class="subject-icon">☪️</span><span class="subject-name">Islamic Studies</span></div>
+      <div class="subject-card" data-subject="Everyday Science"><span class="subject-icon">🔬</span><span class="subject-name">Everyday Science</span></div>
+      <div class="subject-card" data-subject="Computer Basics"><span class="subject-icon">💻</span><span class="subject-name">Computer Basics</span></div>
+      <div class="subject-card" data-subject="General Knowledge"><span class="subject-icon">📚</span><span class="subject-name">General Knowledge</span></div>
+      <div class="subject-card" data-subject="English"><span class="subject-icon">📖</span><span class="subject-name">English</span></div>
+      <div class="subject-card" data-subject="Mathematics"><span class="subject-icon">➗</span><span class="subject-name">Mathematics</span></div>
+      <div class="subject-card" data-subject="Psychology"><span class="subject-icon">🧠</span><span class="subject-name">Psychology</span></div>
     </div>
 
     <label class="field-label">Choose Difficulty</label>
@@ -821,7 +835,230 @@ const BANK = [
   {"cat": "General Knowledge", "diff": "easy", "q": "Which sport is traditionally nicknamed the 'Gentleman's Game'?", "opts": ["Cricket", "Football", "Hockey", "Golf"], "correct": "Cricket"},
   {"cat": "General Knowledge", "diff": "medium", "q": "The modern sport of cricket is widely credited as having originated in which country?", "opts": ["England", "Australia", "India", "West Indies"], "correct": "England"},
   {"cat": "General Knowledge", "diff": "easy", "q": "What is the standard duration of a football (soccer) match, excluding stoppage time?", "opts": ["90 minutes", "60 minutes", "80 minutes", "120 minutes"], "correct": "90 minutes"},
+
+  {"cat": "English", "diff": "easy", "q": "Choose the correctly spelled word.", "opts": ["Recieve", "Receive", "Receve", "Receeve"], "correct": "Receive"},
+  {"cat": "English", "diff": "easy", "q": "Choose the synonym of 'Happy'.", "opts": ["Sad", "Joyful", "Angry", "Tired"], "correct": "Joyful"},
+  {"cat": "English", "diff": "easy", "q": "Choose the antonym of 'Increase'.", "opts": ["Decrease", "Expand", "Grow", "Rise"], "correct": "Decrease"},
+  {"cat": "English", "diff": "easy", "q": "What is the plural of 'Child'?", "opts": ["Childs", "Children", "Childes", "Childrens"], "correct": "Children"},
+  {"cat": "English", "diff": "easy", "q": "Which of the following is a noun?", "opts": ["Run", "Quickly", "Happiness", "Beautiful"], "correct": "Happiness"},
+  {"cat": "English", "diff": "easy", "q": "What is the past tense of 'Go'?", "opts": ["Goed", "Went", "Gone", "Going"], "correct": "Went"},
+  {"cat": "English", "diff": "easy", "q": "Choose the antonym of 'Import'.", "opts": ["Export", "Transport", "Support", "Report"], "correct": "Export"},
+  {"cat": "English", "diff": "easy", "q": "Fill in the blank: 'He ___ to school every day.'", "opts": ["go", "goes", "going", "gone"], "correct": "goes"},
+  {"cat": "English", "diff": "easy", "q": "Choose the synonym of 'Begin'.", "opts": ["End", "Start", "Stop", "Finish"], "correct": "Start"},
+  {"cat": "English", "diff": "easy", "q": "Choose the correct article: '___ apple a day keeps the doctor away.'", "opts": ["A", "An", "The", "No article"], "correct": "An"},
+  {"cat": "English", "diff": "easy", "q": "Choose the antonym of 'Ancient'.", "opts": ["Old", "Modern", "Historic", "Ruined"], "correct": "Modern"},
+  {"cat": "English", "diff": "easy", "q": "Choose the synonym of 'Huge'.", "opts": ["Tiny", "Enormous", "Small", "Little"], "correct": "Enormous"},
+  {"cat": "English", "diff": "easy", "q": "What is the plural of 'Mouse' (the animal)?", "opts": ["Mouses", "Mice", "Mices", "Mouse"], "correct": "Mice"},
+  {"cat": "English", "diff": "easy", "q": "Fill in the blank: 'She is ___ honest woman.'", "opts": ["a", "an", "the", "no article"], "correct": "an"},
+  {"cat": "English", "diff": "easy", "q": "Which word is spelled correctly?", "opts": ["Definately", "Definitely", "Definitly", "Definetly"], "correct": "Definitely"},
+  {"cat": "English", "diff": "medium", "q": "Choose the one word for 'a person who loves books'.", "opts": ["Bibliophile", "Bibliophobe", "Bookkeeper", "Librarian"], "correct": "Bibliophile"},
+  {"cat": "English", "diff": "medium", "q": "What does the idiom 'Break the ice' mean?", "opts": ["To start a conversation", "To break something", "To get angry", "To finish a task"], "correct": "To start a conversation"},
+  {"cat": "English", "diff": "medium", "q": "What does the idiom 'Once in a blue moon' mean?", "opts": ["Very often", "Rarely", "Never", "Always"], "correct": "Rarely"},
+  {"cat": "English", "diff": "medium", "q": "Choose the synonym of 'Abundant'.", "opts": ["Scarce", "Plentiful", "Rare", "Limited"], "correct": "Plentiful"},
+  {"cat": "English", "diff": "medium", "q": "Choose the antonym of 'Optimistic'.", "opts": ["Pessimistic", "Hopeful", "Positive", "Confident"], "correct": "Pessimistic"},
+  {"cat": "English", "diff": "medium", "q": "Choose the one word for 'a person who cannot read or write'.", "opts": ["Illiterate", "Ignorant", "Illegal", "Innocent"], "correct": "Illiterate"},
+  {"cat": "English", "diff": "medium", "q": "What does the idiom 'Spill the beans' mean?", "opts": ["To reveal a secret", "To cook food", "To make a mess", "To argue"], "correct": "To reveal a secret"},
+  {"cat": "English", "diff": "medium", "q": "Fill in the blank: 'Neither of the boys ___ present.'", "opts": ["is", "are", "were", "have"], "correct": "is"},
+  {"cat": "English", "diff": "medium", "q": "Choose the synonym of 'Candid'.", "opts": ["Honest", "Dishonest", "Shy", "Secretive"], "correct": "Honest"},
+  {"cat": "English", "diff": "medium", "q": "Choose the one word for 'government by the people'.", "opts": ["Democracy", "Monarchy", "Autocracy", "Anarchy"], "correct": "Democracy"},
+  {"cat": "English", "diff": "medium", "q": "Choose the antonym of 'Generous'.", "opts": ["Stingy", "Kind", "Charitable", "Giving"], "correct": "Stingy"},
+  {"cat": "English", "diff": "medium", "q": "What does the idiom 'Bite the bullet' mean?", "opts": ["To face a difficult situation bravely", "To eat something hard", "To get injured", "To avoid a task"], "correct": "To face a difficult situation bravely"},
+  {"cat": "English", "diff": "medium", "q": "Choose the correct preposition: 'He is good ___ mathematics.'", "opts": ["in", "at", "of", "with"], "correct": "at"},
+  {"cat": "English", "diff": "medium", "q": "Choose the synonym of 'Diligent'.", "opts": ["Lazy", "Hardworking", "Careless", "Slow"], "correct": "Hardworking"},
+  {"cat": "English", "diff": "medium", "q": "What does the idiom 'Under the weather' mean?", "opts": ["Feeling unwell", "Very happy", "In a hurry", "Outdoors"], "correct": "Feeling unwell"},
+  {"cat": "English", "diff": "hard", "q": "Choose the antonym of 'Verbose'.", "opts": ["Wordy", "Concise", "Lengthy", "Detailed"], "correct": "Concise"},
+  {"cat": "English", "diff": "hard", "q": "Choose the one word for 'a place where bees are kept'.", "opts": ["Apiary", "Aviary", "Aquarium", "Sanctuary"], "correct": "Apiary"},
+  {"cat": "English", "diff": "hard", "q": "Choose the one word for 'a person who studies birds'.", "opts": ["Ornithologist", "Entomologist", "Botanist", "Zoologist"], "correct": "Ornithologist"},
+  {"cat": "English", "diff": "hard", "q": "Choose the synonym of 'Ephemeral'.", "opts": ["Permanent", "Everlasting", "Temporary", "Eternal"], "correct": "Temporary"},
+  {"cat": "English", "diff": "hard", "q": "What does the idiom 'A blessing in disguise' mean?", "opts": ["Something bad that turns out good", "A hidden gift", "A disguised person", "A lucky charm"], "correct": "Something bad that turns out good"},
+  {"cat": "English", "diff": "hard", "q": "Fill in the blank: 'I have been living here ___ 2010.'", "opts": ["for", "since", "from", "at"], "correct": "since"},
+  {"cat": "English", "diff": "hard", "q": "Choose the antonym of 'Meticulous'.", "opts": ["Careless", "Careful", "Precise", "Thorough"], "correct": "Careless"},
+  {"cat": "English", "diff": "hard", "q": "Choose the one word for 'fear of enclosed spaces'.", "opts": ["Claustrophobia", "Agoraphobia", "Acrophobia", "Xenophobia"], "correct": "Claustrophobia"},
+  {"cat": "English", "diff": "hard", "q": "Choose the synonym of 'Ubiquitous'.", "opts": ["Rare", "Omnipresent", "Hidden", "Scarce"], "correct": "Omnipresent"},
+  {"cat": "English", "diff": "hard", "q": "Fill in the blank: 'Each of the students ___ a book.'", "opts": ["have", "has", "having", "had been"], "correct": "has"},
+  {"cat": "English", "diff": "hard", "q": "Choose the one word for 'handwriting that cannot be read'.", "opts": ["Illegible", "Illegal", "Invisible", "Incomplete"], "correct": "Illegible"},
+  {"cat": "English", "diff": "hard", "q": "Choose the antonym of 'Benevolent'.", "opts": ["Malevolent", "Kind", "Generous", "Caring"], "correct": "Malevolent"},
+
+  {"cat": "Psychology", "diff": "easy", "q": "Who is known as the father of psychoanalysis?", "opts": ["Sigmund Freud", "Ivan Pavlov", "B.F. Skinner", "Carl Jung"], "correct": "Sigmund Freud"},
+  {"cat": "Psychology", "diff": "easy", "q": "Who conducted the famous classical conditioning experiment with dogs?", "opts": ["Ivan Pavlov", "Sigmund Freud", "John Watson", "Jean Piaget"], "correct": "Ivan Pavlov"},
+  {"cat": "Psychology", "diff": "easy", "q": "What does 'IQ' stand for?", "opts": ["Intelligence Quotient", "Intellect Quality", "Individual Quotient", "Intelligence Quality"], "correct": "Intelligence Quotient"},
+  {"cat": "Psychology", "diff": "easy", "q": "Who proposed the Hierarchy of Needs?", "opts": ["Abraham Maslow", "Sigmund Freud", "Carl Rogers", "B.F. Skinner"], "correct": "Abraham Maslow"},
+  {"cat": "Psychology", "diff": "easy", "q": "Which part of the brain primarily controls balance and coordination?", "opts": ["Cerebrum", "Cerebellum", "Medulla", "Thalamus"], "correct": "Cerebellum"},
+  {"cat": "Psychology", "diff": "easy", "q": "What is the scientific study of the mind and behavior called?", "opts": ["Sociology", "Psychology", "Anthropology", "Philosophy"], "correct": "Psychology"},
+  {"cat": "Psychology", "diff": "easy", "q": "Who founded the first formal psychology laboratory (1879, Leipzig)?", "opts": ["Wilhelm Wundt", "William James", "Sigmund Freud", "John Watson"], "correct": "Wilhelm Wundt"},
+  {"cat": "Psychology", "diff": "easy", "q": "Short-term memory used for holding and manipulating information is also called:", "opts": ["Working memory", "Sensory memory", "Long-term memory", "Implicit memory"], "correct": "Working memory"},
+  {"cat": "Psychology", "diff": "easy", "q": "Learning through rewards and punishments is called:", "opts": ["Classical conditioning", "Operant conditioning", "Observational learning", "Habituation"], "correct": "Operant conditioning"},
+  {"cat": "Psychology", "diff": "easy", "q": "Who developed the theory of Operant Conditioning?", "opts": ["B.F. Skinner", "Ivan Pavlov", "Sigmund Freud", "Jean Piaget"], "correct": "B.F. Skinner"},
+  {"cat": "Psychology", "diff": "medium", "q": "According to Freud, which part of personality operates on the 'pleasure principle'?", "opts": ["Ego", "Id", "Superego", "Unconscious"], "correct": "Id"},
+  {"cat": "Psychology", "diff": "medium", "q": "According to Freud, which part of personality represents morals and ideals?", "opts": ["Id", "Ego", "Superego", "Libido"], "correct": "Superego"},
+  {"cat": "Psychology", "diff": "medium", "q": "Jean Piaget's theory of cognitive development includes how many stages?", "opts": ["3", "4", "5", "6"], "correct": "4"},
+  {"cat": "Psychology", "diff": "medium", "q": "What type of conditioning did Pavlov's dog experiment demonstrate?", "opts": ["Operant conditioning", "Classical conditioning", "Observational learning", "Latent learning"], "correct": "Classical conditioning"},
+  {"cat": "Psychology", "diff": "medium", "q": "A strong, irrational fear of a specific object or situation is called a:", "opts": ["Delusion", "Phobia", "Obsession", "Compulsion"], "correct": "Phobia"},
+  {"cat": "Psychology", "diff": "medium", "q": "Maslow's hierarchy of needs is usually depicted as a:", "opts": ["Circle", "Pyramid", "Spiral", "Ladder"], "correct": "Pyramid"},
+  {"cat": "Psychology", "diff": "medium", "q": "According to Maslow, which need forms the base of the pyramid?", "opts": ["Self-actualization", "Safety needs", "Physiological needs", "Esteem needs"], "correct": "Physiological needs"},
+  {"cat": "Psychology", "diff": "medium", "q": "The theory of Multiple Intelligences was proposed by:", "opts": ["Howard Gardner", "Alfred Binet", "Lewis Terman", "Robert Sternberg"], "correct": "Howard Gardner"},
+  {"cat": "Psychology", "diff": "medium", "q": "The brain's ability to reorganize itself by forming new neural connections is called:", "opts": ["Neuroplasticity", "Neurogenesis", "Synaptogenesis", "Homeostasis"], "correct": "Neuroplasticity"},
+  {"cat": "Psychology", "diff": "medium", "q": "Who proposed the theory of Psychosocial Development across the lifespan?", "opts": ["Erik Erikson", "Jean Piaget", "Lev Vygotsky", "John Bowlby"], "correct": "Erik Erikson"},
+  {"cat": "Psychology", "diff": "medium", "q": "Which psychologist is closely associated with humanistic, client-centered therapy?", "opts": ["Carl Rogers", "B.F. Skinner", "Sigmund Freud", "John Watson"], "correct": "Carl Rogers"},
+  {"cat": "Psychology", "diff": "hard", "q": "Who developed the theory of psychosexual stages of development?", "opts": ["Sigmund Freud", "Erik Erikson", "Carl Jung", "Jean Piaget"], "correct": "Sigmund Freud"},
+  {"cat": "Psychology", "diff": "hard", "q": "Which psychologist is associated with the 'Little Albert' experiment?", "opts": ["John B. Watson", "B.F. Skinner", "Ivan Pavlov", "Albert Bandura"], "correct": "John B. Watson"},
+  {"cat": "Psychology", "diff": "hard", "q": "The Stanford Prison Experiment was conducted by:", "opts": ["Philip Zimbardo", "Stanley Milgram", "Solomon Asch", "Leon Festinger"], "correct": "Philip Zimbardo"},
+  {"cat": "Psychology", "diff": "hard", "q": "The Milgram obedience experiment primarily studied:", "opts": ["Obedience to authority", "Conformity to peers", "Memory decay", "Group polarization"], "correct": "Obedience to authority"},
+  {"cat": "Psychology", "diff": "hard", "q": "In Freud's defense mechanisms, reverting to an earlier stage of development under stress is called:", "opts": ["Regression", "Repression", "Projection", "Sublimation"], "correct": "Regression"},
+  {"cat": "Psychology", "diff": "hard", "q": "Cognitive dissonance theory was proposed by:", "opts": ["Leon Festinger", "Solomon Asch", "Stanley Milgram", "Albert Bandura"], "correct": "Leon Festinger"},
+  {"cat": "Psychology", "diff": "hard", "q": "Carl Jung used which term for inherited unconscious ideas shared by all humans?", "opts": ["Collective unconscious", "Personal unconscious", "Archetype pool", "Shadow self"], "correct": "Collective unconscious"},
+  {"cat": "Psychology", "diff": "hard", "q": "The 'bystander effect' refers to the phenomenon where:", "opts": ["People are less likely to help when others are present", "People help more in groups", "People conform to authority", "People remember more in groups"], "correct": "People are less likely to help when others are present"},
+  {"cat": "Psychology", "diff": "hard", "q": "Which brain structure is most closely associated with forming new long-term memories?", "opts": ["Hippocampus", "Amygdala", "Cerebellum", "Thalamus"], "correct": "Hippocampus"},
+  {"cat": "Psychology", "diff": "hard", "q": "John Bowlby is best known for his theory of:", "opts": ["Attachment", "Cognitive development", "Moral development", "Operant conditioning"], "correct": "Attachment"},
 ];
+
+// ---------------- Procedural Mathematics generator (infinite supply, never repeats) ----------------
+// Static banks are finite, so Mathematics is generated on the fly from randomized
+// templates instead — every quiz gets freshly computed, freshly wrong-answered questions.
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function uniqueDistractors(correct, distractorFn, count, opts = {}) {
+  const set = new Set([correct]);
+  let guard = 0;
+  while (set.size < count + 1 && guard < 300) {
+    guard++;
+    const d = distractorFn();
+    if (d == null || !isFinite(d)) continue;
+    const rounded = Math.round(d);
+    if (opts.positive && rounded <= 0) continue;
+    set.add(rounded);
+  }
+  let bump = 1;
+  while (set.size < count + 1) {
+    const candidate = correct + bump;
+    if (!opts.positive || candidate > 0) set.add(candidate);
+    bump++;
+  }
+  return shuffle(Array.from(set));
+}
+
+function tplAddSub(diff) {
+  const range = diff === "easy" ? 50 : diff === "medium" ? 500 : 5000;
+  const a = randInt(10, range);
+  const b = randInt(10, range);
+  if (Math.random() < 0.5) {
+    return { text: `What is ${a} + ${b}?`, correct: a + b, distractor: () => a + b + randInt(-10, 10) * randInt(1, 5) };
+  }
+  const hi = Math.max(a, b), lo = Math.min(a, b);
+  return { text: `What is ${hi} - ${lo}?`, correct: hi - lo, distractor: () => (hi - lo) + randInt(-10, 10) * randInt(1, 5) };
+}
+
+function tplMultiply(diff) {
+  const range = diff === "easy" ? 12 : diff === "medium" ? 25 : 99;
+  const a = randInt(2, range);
+  const b = randInt(2, diff === "easy" ? 12 : range);
+  const correct = a * b;
+  return { text: `What is ${a} × ${b}?`, correct, distractor: () => correct + randInt(-15, 15) };
+}
+
+function tplPercent(diff) {
+  const pcts = diff === "easy" ? [5, 10, 20, 25, 50] : diff === "medium" ? [5, 10, 12.5, 15, 20, 25, 30, 40, 60] : [7.5, 12.5, 15, 22, 35, 45, 65, 75, 85];
+  const pct = pcts[randInt(0, pcts.length - 1)];
+  const base = randInt(diff === "easy" ? 2 : 5, diff === "easy" ? 40 : diff === "medium" ? 200 : 900) * 10;
+  const correct = Math.round(base * pct / 100);
+  return { text: `What is ${pct}% of ${base}?`, correct, distractor: () => correct + randInt(-10, 10) * (diff === "hard" ? 5 : 1) };
+}
+
+function tplAverage(diff) {
+  const n = diff === "easy" ? 3 : diff === "medium" ? 4 : 5;
+  const maxVal = diff === "easy" ? 60 : diff === "medium" ? 300 : 999;
+  let nums = [], avg = 0;
+  for (let guard = 0; guard < 50; guard++) {
+    avg = randInt(diff === "easy" ? 5 : 20, diff === "easy" ? 40 : diff === "medium" ? 200 : 800);
+    nums = [];
+    let sum = 0;
+    for (let i = 0; i < n - 1; i++) { const v = randInt(1, maxVal); nums.push(v); sum += v; }
+    const last = avg * n - sum;
+    if (last > 0 && last <= maxVal * 2) { nums.push(last); break; }
+  }
+  return { text: `Find the average of: ${shuffle(nums).join(', ')}`, correct: avg, distractor: () => avg + randInt(-8, 8) };
+}
+
+function tplProfitLoss(diff) {
+  const cp = randInt(diff === "easy" ? 50 : diff === "medium" ? 200 : 500, diff === "easy" ? 500 : diff === "medium" ? 2000 : 9000);
+  const pct = [5, 10, 15, 20, 25, 30][randInt(0, 5)];
+  const isProfit = Math.random() < 0.5;
+  const sp = isProfit ? Math.round(cp * (1 + pct / 100)) : Math.round(cp * (1 - pct / 100));
+  const text = `A shopkeeper buys an item for Rs. ${cp} and sells it for Rs. ${sp}. What is the ${isProfit ? 'profit' : 'loss'} percentage?`;
+  return { text, correct: pct, distractor: () => pct + [5, -5, 10, -10, 3, -3][randInt(0, 5)] };
+}
+
+function tplSimpleInterest(diff) {
+  const p = randInt(diff === "easy" ? 100 : diff === "medium" ? 500 : 1000, diff === "easy" ? 1000 : diff === "medium" ? 5000 : 20000);
+  const r = [4, 5, 6, 8, 10, 12][randInt(0, 5)];
+  const t = randInt(1, diff === "hard" ? 5 : 3);
+  const correct = Math.round(p * r * t / 100);
+  const text = `Find the Simple Interest on Rs. ${p} at ${r}% per annum for ${t} year${t > 1 ? 's' : ''}.`;
+  return { text, correct, distractor: () => correct + randInt(-50, 50) };
+}
+
+function tplRatio(diff) {
+  const a = randInt(2, 12), b = randInt(2, 12);
+  const total = randInt(diff === "easy" ? 10 : 20, diff === "easy" ? 50 : diff === "medium" ? 200 : 999) * (a + b);
+  const correct = Math.round(total * a / (a + b));
+  const text = `Rs. ${total} is divided between two people in the ratio ${a}:${b}. How much does the first person get?`;
+  return { text, correct, distractor: () => correct + randInt(-20, 20) };
+}
+
+function tplSeries(diff) {
+  const start = randInt(1, diff === "easy" ? 20 : 100);
+  let step = randInt(2, diff === "easy" ? 5 : diff === "medium" ? 12 : 25) * (Math.random() < 0.5 ? 1 : -1);
+  if (step === 0) step = 2;
+  const terms = [start, start + step, start + 2 * step, start + 3 * step];
+  const correct = start + 4 * step;
+  const text = `What comes next in the series: ${terms.join(', ')}, ?`;
+  return { text, correct, distractor: () => correct + randInt(-5, 5) };
+}
+
+function tplSpeed(diff) {
+  const speed = randInt(diff === "medium" ? 20 : 40, diff === "medium" ? 80 : 140);
+  const time = randInt(1, diff === "medium" ? 6 : 10);
+  const correct = speed * time;
+  const text = `A car travels at ${speed} km/h for ${time} hour${time > 1 ? 's' : ''}. How far does it travel?`;
+  return { text, correct, distractor: () => correct + randInt(-30, 30) };
+}
+
+function tplSquare(diff) {
+  const n = randInt(diff === "easy" ? 2 : 10, diff === "easy" ? 15 : diff === "medium" ? 30 : 99);
+  const correct = n * n;
+  return { text: `What is ${n}²?`, correct, distractor: () => correct + randInt(-2 * n, 2 * n) };
+}
+
+const MATH_TEMPLATES = {
+  easy: [tplAddSub, tplMultiply, tplPercent, tplAverage, tplSeries, tplSquare],
+  medium: [tplAddSub, tplMultiply, tplPercent, tplAverage, tplProfitLoss, tplRatio, tplSeries, tplSquare, tplSpeed],
+  hard: [tplAddSub, tplMultiply, tplPercent, tplAverage, tplProfitLoss, tplSimpleInterest, tplRatio, tplSpeed, tplSquare]
+};
+
+function generateMathQuestion(diff) {
+  const templates = MATH_TEMPLATES[diff] || MATH_TEMPLATES.medium;
+  const tpl = templates[randInt(0, templates.length - 1)];
+  const { text, correct, distractor } = tpl(diff);
+  const opts = uniqueDistractors(correct, distractor, 3, { positive: true });
+  return { cat: "Mathematics", diff, q: text, opts: opts.map(String), correct: String(correct) };
+}
+
+// Generates a fresh batch of Maths questions for one quiz run, deduped within the batch.
+function generateMathPool() {
+  const pool = [];
+  const seen = new Set();
+  ["easy", "medium", "hard"].forEach(diff => {
+    let guard = 0;
+    while (pool.filter(q => q.diff === diff).length < 25 && guard < 500) {
+      guard++;
+      const q = generateMathQuestion(diff);
+      if (seen.has(q.q)) continue;
+      seen.add(q.q);
+      pool.push(q);
+    }
+  });
+  return pool;
+}
 
 // ---------------- Scoreboard (synced live via Firebase Firestore) ----------------
 async function saveScoreboardEntry(entry) {
@@ -879,8 +1116,15 @@ function renderBoardFromCache() {
 
   board.forEach((entry, i) => {
     const tr = document.createElement('tr');
-    const regionLabel = entry.region === 'international' ? 'Intl' : 'Pakistan';
-    [i + 1, entry.name, `${entry.difficulty.toUpperCase()} · ${regionLabel}`, `${entry.score}/${entry.total}`, `${entry.pct}%`, entry.date].forEach(val => {
+    let subjectLabel;
+    if (entry.subjects && entry.subjects.length) {
+      subjectLabel = entry.subjects.length >= ALL_SUBJECTS.length ? 'All Subjects' : `${entry.subjects.length} subj`;
+    } else if (entry.region) {
+      subjectLabel = entry.region === 'international' ? 'Intl (legacy)' : 'Pakistan (legacy)';
+    } else {
+      subjectLabel = '—';
+    }
+    [i + 1, entry.name, `${entry.difficulty.toUpperCase()} · ${subjectLabel}`, `${entry.score}/${entry.total}`, `${entry.pct}%`, entry.date].forEach(val => {
       const td = document.createElement('td');
       td.textContent = val;
       tr.appendChild(td);
@@ -932,8 +1176,6 @@ function shuffle(arr) {
   return a;
 }
 
-const PK_ONLY_CATEGORIES = new Set(["Pakistan Studies", "Current Affairs & Govt"]);
-
 // Round-robins across categories so every quiz spreads across many subjects
 // instead of randomly clustering into just one or two.
 function stratifiedPick(candidates, count) {
@@ -959,22 +1201,44 @@ function stratifiedPick(candidates, count) {
   return picked;
 }
 
-function selectQuestions(difficulty, region) {
-  const base = region === "international" ? BANK.filter(q => !PK_ONLY_CATEGORIES.has(q.cat)) : BANK;
+const QUIZ_LENGTH = { easy: 15, medium: 30, hard: 50 };
+
+function selectQuestions(difficulty, subjects) {
+  const staticBase = BANK.filter(q => subjects.includes(q.cat));
+  // Mathematics has no static bank — it's generated fresh every run, so it never runs dry.
+  const mathBase = subjects.includes("Mathematics") ? generateMathPool() : [];
+  const base = staticBase.concat(mathBase);
+  const target = QUIZ_LENGTH[difficulty];
+
   let picked;
   if (difficulty === "easy") {
-    picked = stratifiedPick(base.filter(q => q.diff === "easy"), 15);
+    picked = stratifiedPick(base.filter(q => q.diff === "easy"), target);
   } else if (difficulty === "medium") {
     const nonEasy = base.filter(q => q.diff !== "easy");
-    picked = stratifiedPick(nonEasy, 30);
-    if (picked.length < 30) {
+    picked = stratifiedPick(nonEasy, target);
+    if (picked.length < target) {
       const usedQs = new Set(picked.map(q => q.q));
       const easyFill = base.filter(q => q.diff === "easy" && !usedQs.has(q.q));
-      picked = picked.concat(stratifiedPick(easyFill, 30 - picked.length));
+      picked = picked.concat(stratifiedPick(easyFill, target - picked.length));
     }
   } else {
-    picked = stratifiedPick(base, 50);
+    picked = stratifiedPick(base, target);
   }
+
+  // Never run out: if the chosen subject combo still can't fill the full count
+  // (e.g. one small static subject picked alone on Hard), pad by cycling back
+  // through whatever is available rather than shipping a short quiz.
+  if (picked.length < target && base.length > 0) {
+    const usedQs = new Set(picked.map(q => q.q));
+    const extra = shuffle(base.filter(q => !usedQs.has(q.q)));
+    const fallback = extra.length > 0 ? extra : shuffle(base);
+    let i = 0;
+    while (picked.length < target) {
+      picked.push(fallback[i % fallback.length]);
+      i++;
+    }
+  }
+
   return shuffle(picked).map(q => ({
     ...q,
     shuffledOpts: shuffle(q.opts)
@@ -990,7 +1254,9 @@ function showScreen(id) {
 const nameInput = document.getElementById('player-name');
 const startBtn = document.getElementById('start-btn');
 let selectedDifficulty = null;
-let selectedRegion = null;
+const ALL_SUBJECTS = Array.from(document.querySelectorAll('.subject-card')).map(c => c.dataset.subject);
+let selectedSubjects = new Set();
+const subjectCountEl = document.getElementById('subject-count');
 
 document.querySelectorAll('.diff-card').forEach(card => {
   card.addEventListener('click', () => {
@@ -1001,26 +1267,52 @@ document.querySelectorAll('.diff-card').forEach(card => {
   });
 });
 
-document.querySelectorAll('.region-card').forEach(card => {
+function updateSubjectCount() {
+  subjectCountEl.textContent = selectedSubjects.size ? `(${selectedSubjects.size} selected)` : '';
+}
+
+document.querySelectorAll('.subject-card').forEach(card => {
   card.addEventListener('click', () => {
-    document.querySelectorAll('.region-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedRegion = card.dataset.region;
+    const subject = card.dataset.subject;
+    if (selectedSubjects.has(subject)) {
+      selectedSubjects.delete(subject);
+      card.classList.remove('selected');
+    } else {
+      selectedSubjects.add(subject);
+      card.classList.add('selected');
+    }
+    updateSubjectCount();
     validateStart();
   });
+});
+
+document.getElementById('select-all-btn').addEventListener('click', () => {
+  document.querySelectorAll('.subject-card').forEach(card => {
+    selectedSubjects.add(card.dataset.subject);
+    card.classList.add('selected');
+  });
+  updateSubjectCount();
+  validateStart();
+});
+
+document.getElementById('clear-subjects-btn').addEventListener('click', () => {
+  selectedSubjects.clear();
+  document.querySelectorAll('.subject-card').forEach(card => card.classList.remove('selected'));
+  updateSubjectCount();
+  validateStart();
 });
 
 nameInput.addEventListener('input', validateStart);
 
 function validateStart() {
-  startBtn.disabled = !(nameInput.value.trim().length > 0 && selectedDifficulty && selectedRegion);
+  startBtn.disabled = !(nameInput.value.trim().length > 0 && selectedDifficulty && selectedSubjects.size > 0);
 }
 
 startBtn.addEventListener('click', () => {
   state.name = nameInput.value.trim();
   state.difficulty = selectedDifficulty;
-  state.region = selectedRegion;
-  state.questions = selectQuestions(selectedDifficulty, selectedRegion);
+  state.subjects = Array.from(selectedSubjects);
+  state.questions = selectQuestions(selectedDifficulty, state.subjects);
   state.current = 0;
   state.score = 0;
   state.correctCount = 0;
@@ -1029,7 +1321,10 @@ startBtn.addEventListener('click', () => {
 
   document.getElementById('panel-name').textContent = state.name;
   const badge = document.getElementById('panel-diff');
-  badge.textContent = selectedDifficulty.toUpperCase() + ' · ' + (selectedRegion === 'international' ? 'INTL' : 'PAKISTAN');
+  const subjectLabel = state.subjects.length === ALL_SUBJECTS.length
+    ? 'ALL SUBJECTS'
+    : state.subjects.length + ' SUBJECT' + (state.subjects.length > 1 ? 'S' : '');
+  badge.textContent = selectedDifficulty.toUpperCase() + ' · ' + subjectLabel;
   badge.className = 'diff-badge badge-' + selectedDifficulty;
 
   showScreen('quiz-screen');
@@ -1132,7 +1427,7 @@ function finishQuiz() {
   saveScoreboardEntry({
     name: state.name,
     difficulty: state.difficulty,
-    region: state.region,
+    subjects: state.subjects,
     score: state.score,
     total: total,
     pct: pct,
@@ -1160,8 +1455,9 @@ function finishQuiz() {
 document.getElementById('restart-btn').addEventListener('click', () => {
   nameInput.value = '';
   selectedDifficulty = null;
-  selectedRegion = null;
-  document.querySelectorAll('.diff-card, .region-card').forEach(c => c.classList.remove('selected'));
+  selectedSubjects.clear();
+  updateSubjectCount();
+  document.querySelectorAll('.diff-card, .subject-card').forEach(c => c.classList.remove('selected'));
   startBtn.disabled = true;
   showScreen('start-screen');
 });
