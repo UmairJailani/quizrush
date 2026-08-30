@@ -18,5 +18,20 @@ service cloud.firestore {
         request.resource.data.pct <= 100;
       allow update, delete: if false;
     }
+    match /ldc_scores/{scoreId} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.name is string &&
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() <= 30 &&
+        request.resource.data.score is int &&
+        request.resource.data.total is int &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= request.resource.data.total &&
+        request.resource.data.pct is int &&
+        request.resource.data.pct >= 0 &&
+        request.resource.data.pct <= 100;
+      allow update, delete: if false;
+    }
   }
 }

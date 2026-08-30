@@ -170,6 +170,24 @@ button{ font-family:inherit; }
 .bucket-score{ width:60px; text-align:right; font-family:"IBM Plex Mono"; font-size:13px; color:var(--muted); }
 .weak-note{ margin-top:18px; padding:14px 16px; border-radius:10px; background:var(--surface-2); border-left:3px solid var(--warm); font-size:14px; line-height:1.55; }
 .hidden{ display:none !important; }
+
+/* ---- Leaderboard ---- */
+.board-submit{ padding-top:6px; border-top:1px solid var(--line); }
+.submit-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.name-input{
+  flex:1; min-width:160px; padding:11px 14px; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); font-size:14px; font-family:inherit;
+}
+.name-input:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+.board-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+.board-row:last-child{ border-bottom:none; }
+.board-rank{ width:26px; font-family:"IBM Plex Mono"; font-weight:600; color:var(--muted); flex-shrink:0; }
+.board-name{ flex:1; font-weight:600; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.board-score{ font-family:"IBM Plex Mono"; font-size:13.5px; color:var(--muted); flex-shrink:0; }
+.board-pct{
+  font-family:"IBM Plex Mono"; font-size:12.5px; font-weight:600; padding:2px 8px; border-radius:999px;
+  background:var(--surface-2); flex-shrink:0; min-width:44px; text-align:center;
+}
 </style>
 
 <div class="wrap">
@@ -227,6 +245,7 @@ button{ font-family:inherit; }
             </ul>
           </details>
           <button class="start-btn" id="startBtn">Start the drill &rarr;</button>
+          <button class="navbtn" id="viewBoardBtn" style="width:100%; margin-top:10px;">🏆 View leaderboard</button>
           <div class="tip">One question at a time &middot; instant answer + explanation &middot; jump anywhere via the palette</div>
         </div>
       </div>
@@ -280,7 +299,32 @@ button{ font-family:inherit; }
       </div>
       <div id="bucketBreakdown" style="margin-top:10px;"></div>
       <div class="weak-note" id="weakNote"></div>
-      <button class="start-btn" id="restartBtn" style="margin-top:22px;">Run it again (reshuffled)</button>
+
+      <div class="board-submit" id="boardSubmit">
+        <h3 style="margin:22px 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);">Add your score to the leaderboard</h3>
+        <div class="submit-row">
+          <input type="text" id="nameInput" maxlength="30" placeholder="Your name" class="name-input">
+          <button class="navbtn primary" id="submitScoreBtn">Submit</button>
+        </div>
+        <div class="tip" id="submitStatus" style="text-align:left; margin-top:8px;"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <button class="start-btn" id="restartBtn" style="flex:1;">Run it again (reshuffled)</button>
+        <button class="navbtn" id="goBoardBtn" style="flex:1;">🏆 View leaderboard</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="leaderboard" class="hidden">
+    <div class="card">
+      <div class="qmeta" style="margin-bottom:6px;">
+        <h2 style="margin:0; font-size:20px;">🏆 Leaderboard</h2>
+        <button class="navbtn" id="boardBackBtn">&larr; Back</button>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin-top:0;">Top 20 scores from everyone who's run this drill on the shared link. Each run is a random 50 from the 150-question bank, so scores are broadly comparable, not identical papers.</p>
+      <div id="boardList"></div>
     </div>
   </section>
 
@@ -500,6 +544,81 @@ let answers = {};      // qIndex -> chosen option index
 let marked = {};       // qIndex -> true
 let timeLeft = 3600;
 let timerId = null;
+let lastResult = null; // {score, total, pct}
+
+// ---- Optional shared leaderboard (Firebase). Fails silently if blocked/offline. ----
+let fbDb = null, fbLib = null, fbReady = false;
+(async function initFirebase(){
+  try{
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQXMOIvNc4kwK48XEvOfhQblhLrl5LljA",
+      authDomain: "quizrush-gk.firebaseapp.com",
+      projectId: "quizrush-gk",
+      storageBucket: "quizrush-gk.firebasestorage.app",
+      messagingSenderId: "801536406261",
+      appId: "1:801536406261:web:c57731214f85083a14cbbc"
+    };
+    const app = appMod.initializeApp(firebaseConfig);
+    fbDb = fsMod.getFirestore(app);
+    fbLib = fsMod;
+    fbReady = true;
+  } catch(err){
+    fbReady = false;
+  }
+})();
+
+async function submitScore(name, score, total, pct){
+  if(!fbReady) return false;
+  try{
+    await fbLib.addDoc(fbLib.collection(fbDb,'ldc_scores'), {
+      name: name.slice(0,30), score, total, pct, ts: fbLib.serverTimestamp()
+    });
+    return true;
+  } catch(err){ return false; }
+}
+
+async function loadLeaderboard(){
+  const listEl = $('boardList');
+  if(!fbReady){
+    listEl.innerHTML = '<p class="tip">Leaderboard isn\'t reachable from this preview right now &mdash; try the shared link, or check your internet connection.</p>';
+    return;
+  }
+  listEl.innerHTML = '<p class="tip">Loading&hellip;</p>';
+  try{
+    const q = fbLib.query(fbLib.collection(fbDb,'ldc_scores'), fbLib.orderBy('score','desc'), fbLib.limit(20));
+    const snap = await fbLib.getDocs(q);
+    const rows = [];
+    snap.forEach(doc=>rows.push(doc.data()));
+    if(!rows.length){
+      listEl.innerHTML = '<p class="tip">No scores yet &mdash; be the first to finish a drill and submit yours.</p>';
+      return;
+    }
+    listEl.innerHTML = '';
+    rows.forEach((r,i)=>{
+      const row = document.createElement('div');
+      row.className = 'board-row';
+      row.innerHTML =
+        '<span class="board-rank">'+(i+1)+'</span>'+
+        '<span class="board-name"></span>'+
+        '<span class="board-score mono">'+r.score+'/'+r.total+'</span>'+
+        '<span class="board-pct">'+r.pct+'%</span>';
+      row.querySelector('.board-name').textContent = r.name || 'Anonymous';
+      listEl.appendChild(row);
+    });
+  } catch(err){
+    listEl.innerHTML = '<p class="tip">Couldn\'t load the leaderboard right now.</p>';
+  }
+}
+
+function showLeaderboard(){
+  $('intro').classList.add('hidden');
+  $('quiz').classList.add('hidden');
+  $('results').classList.add('hidden');
+  $('leaderboard').classList.remove('hidden');
+  loadLeaderboard();
+}
 
 function startQuiz(){
   $('intro').classList.add('hidden');
@@ -666,6 +785,13 @@ function finishQuiz(){
   } else {
     wn.textContent = 'Solid spread across every section. Do one more timed pass to build speed, then rest before the test.';
   }
+
+  lastResult = { score: correct, total: total, pct: Math.round((correct/total)*100) };
+  $('submitStatus').textContent = '';
+  $('nameInput').value = '';
+  $('nameInput').disabled = false;
+  $('submitScoreBtn').disabled = false;
+  $('submitScoreBtn').textContent = 'Submit';
 }
 
 $('restartBtn').addEventListener('click', ()=>{
@@ -673,5 +799,33 @@ $('restartBtn').addEventListener('click', ()=>{
   idx = 0; answers = {}; marked = {};
   $('results').classList.add('hidden');
   $('intro').classList.remove('hidden');
+});
+
+$('viewBoardBtn').addEventListener('click', showLeaderboard);
+$('goBoardBtn').addEventListener('click', showLeaderboard);
+$('boardBackBtn').addEventListener('click', ()=>{
+  $('leaderboard').classList.add('hidden');
+  $('intro').classList.remove('hidden');
+});
+
+$('submitScoreBtn').addEventListener('click', async ()=>{
+  const name = $('nameInput').value.trim();
+  const statusEl = $('submitStatus');
+  if(!name){ statusEl.textContent = 'Type your name first.'; return; }
+  if(!lastResult) return;
+  $('submitScoreBtn').disabled = true;
+  $('submitScoreBtn').textContent = 'Submitting…';
+  statusEl.textContent = '';
+  const ok = await submitScore(name, lastResult.score, lastResult.total, lastResult.pct);
+  if(ok){
+    $('nameInput').disabled = true;
+    $('submitScoreBtn').textContent = 'Submitted ✓';
+    statusEl.textContent = 'On the board. Check it out below.';
+    showLeaderboard();
+  } else {
+    $('submitScoreBtn').disabled = false;
+    $('submitScoreBtn').textContent = 'Submit';
+    statusEl.textContent = 'Couldn\'t submit right now — the leaderboard needs the shared link and an internet connection.';
+  }
 });
 </script>
