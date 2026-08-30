@@ -188,7 +188,7 @@ button{ font-family:inherit; }
       <div class="intro-grid">
         <div>
           <p>This mirrors the real ICT Police LDC test: MCQs, <strong>no negative marking</strong>, roughly one hour. Since there's no penalty for guessing, attempt every question &mdash; never leave one blank tomorrow.</p>
-          <p>Real weightage skews toward <strong>Analytical Reasoning &amp; General Knowledge (45%)</strong>, not computer skills &mdash; despite this being a clerk post. English is 30%, Math 15%, Pakistan Studies and Islamiat 5% each. This drill is built to that ratio: 62 questions &mdash; including jumbled-word/anagram puzzles and seating-arrangement reasoning pulled from real past papers &mdash; each answered instantly with an explanation so you learn as you go, and a fuller breakdown if you get it wrong.</p>
+          <p>Real weightage skews toward <strong>Analytical Reasoning &amp; General Knowledge (45%)</strong>, not computer skills &mdash; despite this being a clerk post. English is 30%, Math 15%, Pakistan Studies and Islamiat 5% each. Each attempt draws <strong>50 fresh questions from a bank of 150</strong> &mdash; including jumbled-word/anagram puzzles and seating-arrangement reasoning pulled from real past papers &mdash; in that same ratio, so refreshing the page or hitting "run it again" gives you a genuinely different set to practice on, not the same one memorized by position.</p>
           <div class="weight-bar">
             <div style="width:45%; background:var(--accent)"></div>
             <div style="width:30%; background:var(--warm)"></div>
@@ -205,7 +205,8 @@ button{ font-family:inherit; }
           </div>
           <p class="source-note">Pattern cross-checked against 2026 LDC/UDC syllabus breakdowns (pastpaperspdf.com, uzailearning.com). Agencies can tweak the exact split test to test &mdash; treat this as your best working model, not a guarantee.</p>
           <div class="stat-row">
-            <div class="stat"><div class="n">62</div><div class="l">Questions</div></div>
+            <div class="stat"><div class="n">50</div><div class="l">Per attempt</div></div>
+            <div class="stat"><div class="n">150</div><div class="l">Question bank</div></div>
             <div class="stat"><div class="n">60:00</div><div class="l">Clock</div></div>
             <div class="stat"><div class="n">0</div><div class="l">Neg. marking</div></div>
           </div>
@@ -335,6 +336,46 @@ const QUESTIONS = [
 {b:'GK', q:'Five friends A, B, C, D and E sit in a row. C is at the left end. A is immediately to the left of B. D sits between B and E. Who is in the middle (3rd) seat?', o:['A','B','D','E'], c:1, e:'Fixing C at seat 1 and working the other clues gives the only valid order: C, A, B, D, E. That puts B in seat 3, the middle.'},
 {b:'GK', q:'Facing north, Ali turns 90° clockwise, walks ahead, then turns another 90° clockwise. Which direction does he now face?', o:['North','East','South','West'], c:2, e:'North, turned 90° clockwise once, becomes East; turned 90° clockwise a second time becomes South. Two clockwise quarter-turns always add up to a half-turn (facing the opposite direction).'},
 
+// ---- More Reasoning / GK / Computer / Science (pool expansion) ----
+{b:'GK', q:'Find the next number: 5, 11, 23, 47, ?', o:['94','95','92','90'], c:1, e:'Each term follows ×2 + 1: 47×2+1 = 95. Check the start: 5×2+1=11, 11×2+1=23 — consistent throughout.'},
+{b:'GK', q:'Find the next number: 7, 14, 28, 56, ?', o:['84','98','112','120'], c:2, e:'Each term simply doubles the one before it: 56×2 = 112.'},
+{b:'GK', q:'Find the next letter: Z, X, U, Q, ?', o:['N','M','L','O'], c:2, e:'The gap between letters grows by one each time, moving backward: −2, −3, −4, −5. Z→X(-2), X→U(-3), U→Q(-4), Q→L(-5, since Q is the 17th letter and 17−5=12=L).'},
+{b:'GK', q:'Pen is to Write as Knife is to ?', o:['Sharp','Cut','Kitchen','Blade'], c:1, e:'A pen\'s function is to write; a knife\'s function is to cut — matching tool-to-function relationship.'},
+{b:'GK', q:'Bird is to Nest as Bee is to ?', o:['Flower','Sting','Hive','Honey'], c:2, e:'A bird lives in a nest; a bee lives in a hive — same dwelling-place relationship.'},
+{b:'GK', q:'Pick the odd one out: Triangle, Square, Circle, Rectangle', o:['Triangle','Square','Circle','Rectangle'], c:2, e:'A circle has no straight sides or corners, so it isn\'t a polygon — the other three are.'},
+{b:'GK', q:'Pick the odd one out: Iron, Copper, Aluminium, Plastic', o:['Iron','Copper','Aluminium','Plastic'], c:3, e:'Plastic is not a metal; the other three are all metallic elements.'},
+{b:'GK', q:'If FRIEND is coded as GSJFOE (each letter shifted forward by one), how is HOUSE coded using the same rule?', o:['IPVTF','IPVSF','GPVTF','IOVTF'], c:0, e:'Shift each letter forward by one: H→I, O→P, U→V, S→T, E→F, giving IPVTF.'},
+{b:'GK', q:'In a certain code, NORTH is written as SOUTH. What would EAST be written as?', o:['WEST','NORTH','SOUTH','EAST'], c:0, e:'The code simply swaps each direction word for its opposite — so EAST becomes WEST.'},
+{b:'GK', q:'A is B\'s brother. C is B\'s mother. D is C\'s father. How is A related to D?', o:['Son','Grandson','Nephew','Brother'], c:1, e:'C is B and A\'s mother, and D is C\'s father — meaning D is A\'s maternal grandfather, so A is D\'s grandson.'},
+{b:'GK', q:'Pointing to a woman, a man says: "Her mother is the only daughter of my mother." How is the man related to the woman?', o:['Father','Brother','Maternal uncle','Cousin'], c:2, e:'"The only daughter of my mother" is the man\'s own sister. Since that sister is the woman\'s mother, the man is the woman\'s maternal uncle.'},
+{b:'GK', q:'Ahmed walks 4 km west, then 3 km north. What is his straight-line distance from his starting point?', o:['3 km','4 km','5 km','7 km'], c:2, e:'The two legs form a right angle, so use the Pythagorean theorem: √(4² + 3²) = √25 = 5 km.'},
+{b:'GK', q:'Statements: "No cats are dogs. All dogs are animals." Does it follow that "No cats are animals"?', o:['Yes, valid','No, invalid','Always true','Same meaning'], c:1, e:'These statements only tell you dogs are a subset of animals that excludes cats — they say nothing about whether cats belong to the wider set of animals through some other path. The conclusion doesn\'t logically follow, even though it happens to be factually false too.'},
+{b:'GK', q:'If today is Monday, what day will it be after 15 days?', o:['Monday','Tuesday','Wednesday','Sunday'], c:1, e:'15 ÷ 7 leaves a remainder of 1, so count 1 day forward from Monday: Tuesday.'},
+{b:'GK', q:'How many degrees does the minute hand of a clock move in 15 minutes?', o:['60°','90°','120°','180°'], c:1, e:'The minute hand covers 360° in 60 minutes, i.e. 6° per minute. In 15 minutes: 15 × 6° = 90°.'},
+{b:'GK', q:'If A=1, B=2, C=3 ... Z=26, what is the sum of the letter values in "CAT"?', o:['20','22','24','26'], c:2, e:'C=3, A=1, T=20. Sum = 3+1+20 = 24.'},
+{b:'GK', q:'Find the next number: 2, 3, 5, 8, 13, ?', o:['18','20','21','24'], c:2, e:'Each number is the sum of the two before it (a Fibonacci-style pattern): 8+13 = 21.'},
+{b:'GK', q:'Find the next number: 100, 50, 25, 12.5, ?', o:['6.25','6','5','8'], c:0, e:'Each term is half of the one before it: 12.5 ÷ 2 = 6.25.'},
+{b:'GK', q:'Which number does not belong: 8, 27, 64, 90?', o:['8','27','64','90'], c:3, e:'8, 27, and 64 are perfect cubes (2³, 3³, 4³). 90 is not a perfect cube, making it the odd one out.'},
+{b:'GK', q:'Author is to Book as Sculptor is to ?', o:['Chisel','Statue','Marble','Museum'], c:1, e:'An author creates a book; a sculptor creates a statue — same creator-to-creation relationship.'},
+{b:'GK', q:'Rearrange the jumbled letters "T N E M N R E V O G" to form a meaningful English word.', o:['GOVERNMENT','GOVERMENT','GOVENRMENT','GONVERMENT'], c:0, e:'The letters G, O, V, E, R, N, M, E, N, T (10 letters, two E\'s and two N\'s) spell GOVERNMENT exactly. The other three options are simply GOVERNMENT with letters dropped or swapped — read each one carefully, letter by letter.'},
+{b:'GK', q:'Rearrange the jumbled letters "A L S C H O O" to form a meaningful English word.', o:['SCHOLAR','SCHOOL','CHORALS','COACHLS'], c:1, e:'The letters given are S, C, H, O, O, L (with two O\'s) — that\'s exactly SCHOOL. SCHOLAR needs an R and A you weren\'t given.'},
+{b:'GK', q:'What does the abbreviation "URL" stand for?', o:['Uniform Resource Locator','Universal Reference Link','United Resource Locator','Uniform Reference Locator'], c:0, e:'URL = Uniform Resource Locator, the address used to find a resource on the internet.'},
+{b:'GK', q:'Which of the following is an input device?', o:['Printer','Monitor','Keyboard','Speaker'], c:2, e:'A keyboard sends data into the computer (input). Printers, monitors, and speakers all output information instead.'},
+{b:'GK', q:'One byte is equal to how many bits?', o:['4','8','16','32'], c:1, e:'1 byte = 8 bits — one of the most basic facts in computer science, and a frequent MCQ target.'},
+{b:'GK', q:'Which shortcut key copies selected text or an object?', o:['Ctrl + V','Ctrl + X','Ctrl + C','Ctrl + Z'], c:2, e:'Ctrl+C copies. Ctrl+X cuts, Ctrl+V pastes, and Ctrl+Z undoes — a cluster of shortcuts worth memorizing together.'},
+{b:'GK', q:'Which shortcut key pastes previously copied or cut content?', o:['Ctrl + P','Ctrl + V','Ctrl + C','Ctrl + N'], c:1, e:'Ctrl+V pastes. (Ctrl+P is Print and Ctrl+N is New — easy to confuse under time pressure, so double check.)'},
+{b:'GK', q:'Which organ is primarily responsible for pumping blood throughout the human body?', o:['Lungs','Liver','Heart','Kidney'], c:2, e:'The heart is the muscular pump that circulates blood through the entire body.'},
+{b:'GK', q:'What is the chemical formula/symbol for water?', o:['CO2','H2O','O2','NaCl'], c:1, e:'Water is H2O — two hydrogen atoms bonded to one oxygen atom.'},
+{b:'GK', q:'Sound travels fastest through which of the following mediums?', o:['Gas (air)','Liquid (water)','Solid','Vacuum'], c:2, e:'Sound needs particles to travel and moves fastest where particles are packed tightest: solids, then liquids, then gases. It cannot travel through a vacuum at all.'},
+{b:'GK', q:'Which is the smallest country in the world by land area?', o:['Monaco','Vatican City','San Marino','Malta'], c:1, e:'Vatican City, at roughly 0.44 km², is the smallest sovereign state in the world.'},
+{b:'GK', q:'Which country is traditionally known as the "Land of the Rising Sun"?', o:['China','South Korea','Japan','Thailand'], c:2, e:'Japan is called the "Land of the Rising Sun" because, from East Asia, the sun appears to rise from its direction.'},
+{b:'GK', q:'What is the national language of Pakistan?', o:['English','Punjabi','Urdu','Pashto'], c:2, e:'Urdu is Pakistan\'s national language, though English is widely used as the official language of government and courts.'},
+{b:'GK', q:'How many continents are there on Earth?', o:['5','6','7','8'], c:2, e:'The commonly taught model lists 7 continents: Asia, Africa, North America, South America, Antarctica, Europe, and Australia/Oceania.'},
+{b:'GK', q:'What is officially recognized as the national sport of Pakistan?', o:['Cricket','Hockey','Squash','Kabaddi'], c:1, e:'Field hockey is Pakistan\'s official national sport, even though cricket is far more popular today.'},
+{b:'GK', q:'Fish is to Water as Bird is to ?', o:['Nest','Air','Tree','Wing'], c:1, e:'A fish\'s natural living medium is water; a bird\'s natural living medium is air.'},
+{b:'GK', q:'Pick the odd one out: Delhi, Mumbai, Lahore, Kolkata', o:['Delhi','Mumbai','Lahore','Kolkata'], c:2, e:'Delhi, Mumbai, and Kolkata are all Indian cities; Lahore is in Pakistan, making it the odd one out.'},
+{b:'GK', q:'In a row of children facing north, Sana is 5th from the left end and 12th from the right end. How many children are in the row?', o:['15','16','17','18'], c:1, e:'Total = (position from left) + (position from right) − 1, since Sana is counted in both: 5 + 12 − 1 = 16.'},
+
 // ---- English (14) ----
 {b:'ENG', q:'Choose the closest synonym for "Abundant":', o:['Scarce','Plentiful','Tiny','Broken'], c:1, e:'"Abundant" means existing in large quantities — "plentiful" is the closest match.'},
 {b:'ENG', q:'Choose the best antonym for "Benevolent":', o:['Kind','Generous','Malevolent','Gentle'], c:2, e:'"Benevolent" means kind/well-meaning; its opposite is "malevolent" (ill-intentioned).'},
@@ -352,6 +393,33 @@ const QUESTIONS = [
 {b:'ENG', q:'Choose the sentence with correct subject-verb agreement:', o:['The list of items are on the table.','The list of items is on the table.','The list of items were on the table.','The list of items being on the table.'], c:1, e:'The subject is "list" (singular), not "items" — so the verb must be "is."'},
 {b:'ENG', q:'Read the passage: "Public offices across the city switched to a four-day work week for a trial period. Within two months, absenteeism due to reported illness fell sharply, though total hours worked per employee stayed almost the same, because daily shifts grew longer." What can be correctly inferred?', o:['Employees worked fewer total hours after the change','The shorter week reduced sick leave without cutting total work hours','The trial was cancelled after two months','Public offices returned to a five-day week'], c:1, e:'The passage explicitly says total hours "stayed almost the same" (because shifts got longer) while sick-related absence "fell sharply" — so the honest inference is less sick leave, not less total work. Comprehension questions punish reading in your own assumption instead of what the passage actually states.'},
 
+// ---- More English (pool expansion) ----
+{b:'ENG', q:'Choose the closest synonym for "Rapid":', o:['Slow','Quick','Weak','Silent'], c:1, e:'"Rapid" means happening very fast — "quick" is the closest match.'},
+{b:'ENG', q:'Choose the best antonym for "Ancient":', o:['Modern','Old','Historic','Aged'], c:0, e:'"Ancient" means very old; its opposite is "modern."'},
+{b:'ENG', q:'A person who loves and collects books is called a:', o:['Bibliophile','Bibliophobe','Philanthropist','Linguist'], c:0, e:'"Bibliophile" literally means "book lover." A "bibliophobe" would fear books — the opposite.'},
+{b:'ENG', q:'The idiom "a blessing in disguise" means:', o:['A gift that was expected','Something that seems bad at first but turns out good','A secret gift','A curse'], c:1, e:'It describes a situation that initially looks unfortunate but ultimately brings a good result.'},
+{b:'ENG', q:'Fill in the blank: "She is fond ___ music."', o:['for','of','with','about'], c:1, e:'The fixed expression is "fond of (something)."'},
+{b:'ENG', q:'Fill in the blank: "He arrived ___ the station on time."', o:['in','on','at','to'], c:2, e:'"Arrive at" is used for smaller/specific locations like a station; "arrive in" is used for cities or countries.'},
+{b:'ENG', q:'Fill in the blank: "She ___ here since 2015."', o:['lives','lived','has lived','is living'], c:2, e:'An action starting in the past and continuing to now uses present perfect: "has lived," paired with "since."'},
+{b:'ENG', q:'Convert to passive voice: "They built the bridge in 1990."', o:['The bridge built them in 1990.','The bridge was built in 1990.','The bridge is built in 1990.','The bridge has built in 1990.'], c:1, e:'Passive voice for a simple past action: object + "was/were" + past participle: "The bridge was built in 1990."'},
+{b:'ENG', q:'What is the plural of "Crisis"?', o:['Crisises','Crises','Crisis\'s','Crisi'], c:1, e:'"Crisis" follows the Greek pattern (like "phenomenon/phenomena"): its plural is "crises."'},
+{b:'ENG', q:'Which spelling is correct?', o:['Definately','Definitely','Definitly','Definetly'], c:1, e:'"Definitely" is built from "definite" + "ly" — a commonly misspelled word worth memorizing exactly.'},
+{b:'ENG', q:'Fill in the blank: "Each of the students ___ submitted the assignment."', o:['have','has','having','had submit'], c:1, e:'"Each" is singular, regardless of the plural noun that follows it ("of the students") — so it takes "has."'},
+{b:'ENG', q:'Fill in the blank: "___ apple a day keeps the doctor away."', o:['A','An','The','No article needed'], c:1, e:'"Apple" starts with a vowel sound, so it takes "an," not "a."'},
+{b:'ENG', q:'Choose the closest synonym for "Meticulous":', o:['Careless','Precise','Lazy','Fast'], c:1, e:'"Meticulous" means showing great attention to detail — closest to "precise."'},
+{b:'ENG', q:'Choose the best antonym for "Optimistic":', o:['Hopeful','Pessimistic','Bright','Cheerful'], c:1, e:'"Optimistic" means expecting good outcomes; its opposite is "pessimistic."'},
+{b:'ENG', q:'A place where books are kept for people to read or borrow is called a:', o:['Bookstore','Library','Archive','Publisher'], c:1, e:'"Library" is a place for reading/borrowing books; a "bookstore" is where books are sold instead.'},
+{b:'ENG', q:'The idiom "to hit the nail on the head" means:', o:['To cause damage','To say or do exactly the right thing','To work with tools','To fail completely'], c:1, e:'It describes identifying or expressing something with perfect accuracy.'},
+{b:'ENG', q:'Fill in the blank: "He is married ___ a doctor."', o:['with','to','for','by'], c:1, e:'The fixed expression is "married to (someone)," not "married with."'},
+{b:'ENG', q:'Fill in the blank: "If I ___ you, I would apologize."', o:['am','was','were','be'], c:2, e:'Hypothetical/unreal conditions use the subjunctive "were" for all subjects, including "I" — a classic exam trap since "was" sounds more natural in speech.'},
+{b:'ENG', q:'Convert to passive voice: "Someone has stolen my bicycle."', o:['My bicycle has stolen someone.','My bicycle has been stolen.','My bicycle was stealing.','My bicycle is stolen by someone had.'], c:1, e:'Passive of present perfect: "has/have been" + past participle. The unknown "someone" is simply dropped, which is normal and preferred in English.'},
+{b:'ENG', q:'What is the plural of "Analysis"?', o:['Analysises','Analyses','Analysis\'s','Analysi'], c:1, e:'Like "crisis/crises," this Greek-origin word forms its plural as "analyses."'},
+{b:'ENG', q:'Spot the error: "Each of the boys have brought their own lunch."', o:['Each','have','brought','their'], c:1, e:'"Each" is singular, so the verb must be "has," not "have" — the same trap as the "each of the students" rule above.'},
+{b:'ENG', q:'Choose the closest synonym for "Diligent":', o:['Lazy','Hardworking','Careless','Slow'], c:1, e:'"Diligent" means careful and persistent in effort — closest to "hardworking."'},
+{b:'ENG', q:'A person who does not believe in the existence of God is called a(n):', o:['Agnostic','Atheist','Theist','Pessimist'], c:1, e:'An "atheist" actively disbelieves in God\'s existence. An "agnostic" simply holds that it can\'t be known either way — a commonly confused distinction.'},
+{b:'ENG', q:'Read: "The new policy requires all applicants to submit documents online. Paper submissions will no longer be accepted after the deadline." What happens to paper submissions after the deadline?', o:['They will be accepted as before','They will no longer be accepted','They will require extra fees','They will be reviewed first'], c:1, e:'The passage states plainly that paper submissions "will no longer be accepted after the deadline" — a direct-statement comprehension question, not one requiring inference.'},
+{b:'ENG', q:'Choose the grammatically correct sentence:', o:['He is one of the best player in the team.','He is one of the best players in the team.','He is one of best player in the team.','He is one of the best players in team.'], c:1, e:'"One of the best ___" is always followed by a plural noun ("players"), because it means he belongs to a group of several best players.'},
+
 // ---- Math (7) ----
 {b:'MATH', q:'What is 15% of 200?', o:['20','25','30','35'], c:2, e:'15% of 200 = (15/100) × 200 = 30.'},
 {b:'MATH', q:'A shirt costs Rs. 800 after a 20% discount. What was its original price?', o:['Rs. 900','Rs. 960','Rs. 1000','Rs. 1050'], c:2, e:'If Rs. 800 is 80% of the original price: original = 800 ÷ 0.8 = Rs. 1000.'},
@@ -363,23 +431,49 @@ const QUESTIONS = [
 {b:'MATH', q:'Complete the series: 30, 18, 15, 7, ?', o:['3','4','5','6'], c:1, e:'The series alternates two subtraction steps: −12, −3, −8, −3. Check it: 30−12=18, 18−3=15, 15−8=7, 7−3=4. When a series doesn\'t move by one constant step, try splitting it into two alternating patterns before giving up.'},
 {b:'MATH', q:'A father\'s age is three times his daughter\'s age. After 12 years, the father\'s age will be twice the daughter\'s age. What is the daughter\'s present age?', o:['10','12','14','16'], c:1, e:'Let the daughter be x, so the father is 3x. In 12 years: 3x+12 = 2(x+12) → 3x+12 = 2x+24 → x = 12. Age problems almost always reduce to one equation once you name the unknown and write both time points algebraically.'},
 
+// ---- More Math (pool expansion) ----
+{b:'MATH', q:'What is 25% of 400?', o:['80','90','100','120'], c:2, e:'25% of 400 = (25/100) × 400 = 100.'},
+{b:'MATH', q:'Solve for x: 2x + 5 = 17', o:['5','6','7','8'], c:1, e:'2x = 17 − 5 = 12, so x = 12 ÷ 2 = 6.'},
+{b:'MATH', q:'The perimeter of a square is 40 cm. What is its area?', o:['80 cm²','90 cm²','100 cm²','120 cm²'], c:2, e:'Perimeter ÷ 4 = side length: 40 ÷ 4 = 10 cm. Area = side² = 10² = 100 cm².'},
+{b:'MATH', q:'A car covers 150 km in 3 hours. What is its average speed?', o:['40 km/h','45 km/h','50 km/h','55 km/h'], c:2, e:'Average speed = total distance ÷ total time = 150 ÷ 3 = 50 km/h.'},
+{b:'MATH', q:'What is the LCM (Least Common Multiple) of 4 and 6?', o:['8','10','12','24'], c:2, e:'Multiples of 4: 4,8,12,16... Multiples of 6: 6,12,18... The smallest common one is 12.'},
+{b:'MATH', q:'What is the HCF (Highest Common Factor) of 18 and 24?', o:['3','6','9','12'], c:1, e:'Factors of 18: 1,2,3,6,9,18. Factors of 24: 1,2,3,4,6,8,12,24. The largest common factor is 6.'},
+{b:'MATH', q:'Convert 3/4 to a percentage.', o:['34%','43%','75%','80%'], c:2, e:'3/4 = 0.75, and 0.75 × 100 = 75%.'},
+{b:'MATH', q:'What is the simple interest on Rs. 10,000 at 5% per annum for 3 years?', o:['Rs. 1,000','Rs. 1,500','Rs. 2,000','Rs. 2,500'], c:1, e:'Simple Interest = (Principal × Rate × Time) / 100 = (10000 × 5 × 3) / 100 = Rs. 1,500.'},
+{b:'MATH', q:'If a : b = 2 : 3 and b : c = 4 : 5, what is a : b : c?', o:['2 : 3 : 5','8 : 12 : 15','6 : 9 : 10','4 : 6 : 5'], c:1, e:'Make the "b" values match: a:b = 2:3 becomes 8:12 (×4), and b:c = 4:5 becomes 12:15 (×3). Now b matches at 12 in both, giving a:b:c = 8:12:15.'},
+{b:'MATH', q:'Find the next number: 1, 4, 9, 16, 25, ?', o:['30','32','36','49'], c:2, e:'These are perfect squares: 1², 2², 3², 4², 5². The next is 6² = 36.'},
+{b:'MATH', q:'A shopkeeper sells an item for Rs. 1,200 at a profit of 20%. What was the cost price?', o:['Rs. 900','Rs. 960','Rs. 1,000','Rs. 1,050'], c:2, e:'If Rs. 1,200 represents 120% of the cost price: cost price = 1200 ÷ 1.2 = Rs. 1,000.'},
+
 // ---- Pakistan Studies (3) ----
 {b:'PAK', q:'Who is known as the founder of Pakistan?', o:['Allama Iqbal','Liaquat Ali Khan','Muhammad Ali Jinnah','Sir Syed Ahmed Khan'], c:2, e:'Muhammad Ali Jinnah, "Quaid-e-Azam," led the movement that resulted in Pakistan\'s creation in 1947.'},
 {b:'PAK', q:'In which year was the Objectives Resolution passed by Pakistan\'s Constituent Assembly?', o:['1947','1949','1956','1973'], c:1, e:'The Objectives Resolution was passed on 12 March 1949, later becoming a preamble to Pakistan\'s constitutions.'},
 {b:'PAK', q:'Which is the largest province of Pakistan by land area?', o:['Punjab','Sindh','Khyber Pakhtunkhwa','Balochistan'], c:3, e:'Balochistan covers about 44% of Pakistan\'s total land area, making it the largest by area (though not by population).'},
 
+// ---- More Pakistan Studies (pool expansion) ----
+{b:'PAK', q:'On what date did Pakistan gain independence?', o:['23 March 1940','14 August 1947','15 August 1947','11 September 1948'], c:1, e:'Pakistan became an independent state on 14 August 1947.'},
+{b:'PAK', q:'Who was the first Governor-General of Pakistan?', o:['Liaquat Ali Khan','Muhammad Ali Jinnah','Ayub Khan','Iskander Mirza'], c:1, e:'Muhammad Ali Jinnah served as Pakistan\'s first Governor-General from 1947 until his death in 1948.'},
+{b:'PAK', q:'What is the official currency of Pakistan?', o:['Pakistani Dinar','Pakistani Rupee','Pakistani Dollar','Pakistani Riyal'], c:1, e:'Pakistan\'s official currency is the Pakistani Rupee (PKR).'},
+{b:'PAK', q:'Which is the longest river in Pakistan?', o:['Jhelum','Chenab','Indus','Ravi'], c:2, e:'The Indus River, running the length of the country, is Pakistan\'s longest and most important river.'},
+{b:'PAK', q:'In which year was Pakistan\'s first constitution enforced?', o:['1949','1956','1962','1973'], c:1, e:'Pakistan\'s first constitution was enforced in 1956, nine years after independence.'},
+{b:'PAK', q:'What is the provincial capital of Sindh?', o:['Hyderabad','Sukkur','Karachi','Larkana'], c:2, e:'Karachi is the capital of Sindh province (and Pakistan\'s largest city).'},
+{b:'PAK', q:'What is the provincial capital of Khyber Pakhtunkhwa?', o:['Abbottabad','Mardan','Peshawar','Swat'], c:2, e:'Peshawar is the capital of Khyber Pakhtunkhwa province.'},
+
 // ---- Islamiat (3) ----
 {b:'ISL', q:'How many Pillars of Islam are there?', o:['Four','Five','Six','Seven'], c:1, e:'The Five Pillars: Shahada, Salah, Zakat, Sawm, and Hajj.'},
 {b:'ISL', q:'The revelation of the Quran began in which Islamic month?', o:['Muharram','Shaban','Ramadan','Shawwal'], c:2, e:'The first verses were revealed to Prophet Muhammad (PBUH) in the month of Ramadan, on Laylat al-Qadr.'},
-{b:'ISL', q:'Who was the first Caliph of Islam after the Prophet\'s (PBUH) death?', o:['Hazrat Umar (RA)','Hazrat Abu Bakr (RA)','Hazrat Uthman (RA)','Hazrat Ali (RA)'], c:1, e:'Hazrat Abu Bakr Siddiq (RA) was chosen as the first Caliph (Khalifa) in 632 CE.'}
+{b:'ISL', q:'Who was the first Caliph of Islam after the Prophet\'s (PBUH) death?', o:['Hazrat Umar (RA)','Hazrat Abu Bakr (RA)','Hazrat Uthman (RA)','Hazrat Ali (RA)'], c:1, e:'Hazrat Abu Bakr Siddiq (RA) was chosen as the first Caliph (Khalifa) in 632 CE.'},
+
+// ---- More Islamiat (pool expansion) ----
+{b:'ISL', q:'What is the Holy Book of Islam called?', o:['The Torah','The Bible','The Quran','The Vedas'], c:2, e:'The Quran is Islam\'s holy scripture, believed to be the literal word of God revealed to Prophet Muhammad (PBUH).'},
+{b:'ISL', q:'How many Surahs (chapters) are there in the Quran?', o:['99','100','114','120'], c:2, e:'The Quran contains 114 Surahs of varying length.'},
+{b:'ISL', q:'Which is the first Surah of the Quran?', o:['Al-Baqarah','Al-Fatiha','Al-Ikhlas','An-Nas'], c:1, e:'Al-Fatiha ("The Opening") is the first chapter of the Quran and is recited in every unit of daily prayer.'},
+{b:'ISL', q:'In which city was Prophet Muhammad (PBUH) born?', o:['Madinah','Makkah','Ta\'if','Jerusalem'], c:1, e:'The Prophet (PBUH) was born in Makkah in the "Year of the Elephant."'},
+{b:'ISL', q:'The minimum threshold of wealth above which Zakat becomes obligatory is called:', o:['Nisab','Sadaqah','Khums','Fidyah'], c:0, e:'"Nisab" is the specific minimum amount of wealth a Muslim must possess before Zakat is due.'},
+{b:'ISL', q:'How many times a day is Salah (prayer) obligatory for Muslims?', o:['Three','Four','Five','Six'], c:2, e:'Muslims are obligated to pray five times a day: Fajr, Zuhr, Asr, Maghrib, and Isha.'},
+{b:'ISL', q:'In which city is Masjid-e-Nabawi (the Prophet\'s Mosque) located?', o:['Makkah','Madinah','Jerusalem','Ta\'if'], c:1, e:'Masjid-e-Nabawi, the second holiest site in Islam, is located in Madinah.'}
 ];
 
-let order = QUESTIONS.map((_,i)=>i);
-let idx = 0;
-let answers = {};      // qIndex -> chosen option index
-let marked = {};       // qIndex -> true
-let timeLeft = 3600;
-let timerId = null;
+const QUIZ_SIZE_TARGETS = { GK:22, ENG:15, MATH:8, PAK:3, ISL:2 }; // sums to 50, mirrors real exam weightage
 
 const $ = (id)=>document.getElementById(id);
 
@@ -390,6 +484,22 @@ function shuffle(arr){
   }
   return arr;
 }
+
+function pickQuizOrder(){
+  let chosen = [];
+  Object.keys(QUIZ_SIZE_TARGETS).forEach(bucket=>{
+    const bucketIdx = shuffle(QUESTIONS.map((q,i)=>i).filter(i=>QUESTIONS[i].b===bucket));
+    chosen = chosen.concat(bucketIdx.slice(0, QUIZ_SIZE_TARGETS[bucket]));
+  });
+  return shuffle(chosen);
+}
+
+let order = pickQuizOrder();
+let idx = 0;
+let answers = {};      // qIndex -> chosen option index
+let marked = {};       // qIndex -> true
+let timeLeft = 3600;
+let timerId = null;
 
 function startQuiz(){
   $('intro').classList.add('hidden');
@@ -559,7 +669,7 @@ function finishQuiz(){
 }
 
 $('restartBtn').addEventListener('click', ()=>{
-  order = shuffle(QUESTIONS.map((_,i)=>i));
+  order = pickQuizOrder();
   idx = 0; answers = {}; marked = {};
   $('results').classList.add('hidden');
   $('intro').classList.remove('hidden');
