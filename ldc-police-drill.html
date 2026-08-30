@@ -1,0 +1,538 @@
+<title>LDC CBT Drill</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+:root{
+  --ink:#1B2430; --ink-soft:#3C4A44; --muted:#5B6660;
+  --paper:#EFF1EA; --surface:#FFFFFF; --surface-2:#E6E9E1;
+  --line:#D6DACE;
+  --accent:#0B6E4F; --accent-ink:#FFFFFF;
+  --warm:#B5792A;
+  --good:#1E8A56; --good-bg:#DFF3E7;
+  --bad:#B23A2E; --bad-bg:#FBE5E1;
+  --focus:#0B6E4F;
+  --shadow: 0 1px 2px rgba(20,30,25,.06), 0 8px 24px -12px rgba(20,30,25,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#ECEFE8; --ink-soft:#C7D0C6; --muted:#93A092;
+    --paper:#11160F; --surface:#1B2118; --surface-2:#242C20;
+    --line:#333D2D;
+    --accent:#3FC98B; --accent-ink:#0A1410;
+    --warm:#E0A94B;
+    --good:#4CD08A; --good-bg:#173023;
+    --bad:#E37868; --bad-bg:#331E1A;
+    --focus:#3FC98B;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#ECEFE8; --ink-soft:#C7D0C6; --muted:#93A092;
+  --paper:#11160F; --surface:#1B2118; --surface-2:#242C20;
+  --line:#333D2D;
+  --accent:#3FC98B; --accent-ink:#0A1410;
+  --warm:#E0A94B;
+  --good:#4CD08A; --good-bg:#173023;
+  --bad:#E37868; --bad-bg:#331E1A;
+  --focus:#3FC98B;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{ font-family:"Newsreader", Georgia, serif; text-wrap:balance; }
+.mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+button{ font-family:inherit; }
+:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+.wrap{ max-width:1040px; margin:0 auto; padding:28px 20px 60px; }
+
+/* ---- Top bar ---- */
+.topbar{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:12px; margin-bottom:22px; flex-wrap:wrap;
+}
+.brand{ display:flex; flex-direction:column; gap:2px; }
+.brand .kicker{
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--warm); font-weight:600;
+}
+.brand h1{ margin:0; font-size:28px; font-weight:600; }
+
+/* ---- Intro screen ---- */
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow); padding:24px;
+}
+.intro-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; }
+@media (max-width:760px){ .intro-grid{ grid-template-columns:1fr; } }
+.intro-grid p{ color:var(--ink-soft); line-height:1.6; }
+.stat-row{ display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+.stat{
+  background:var(--surface-2); border-radius:10px; padding:10px 14px; min-width:100px;
+}
+.stat .n{ font-family:"IBM Plex Mono"; font-size:20px; font-weight:600; }
+.stat .l{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+.weight-bar{ display:flex; height:14px; border-radius:7px; overflow:hidden; margin:14px 0 8px; border:1px solid var(--line); }
+.weight-legend{ display:flex; flex-wrap:wrap; gap:10px 16px; font-size:12.5px; color:var(--ink-soft); margin-bottom:6px; }
+.dot{ width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:6px; }
+.source-note{ font-size:12px; color:var(--muted); margin-top:4px; }
+
+.refresher{ border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--surface-2); }
+.refresher summary{ cursor:pointer; font-weight:600; }
+.refresher ul{ margin:10px 0 2px; padding-left:18px; line-height:1.6; color:var(--ink-soft); font-size:13.5px; }
+
+.start-btn{
+  margin-top:20px; width:100%; border:none; border-radius:10px; padding:16px 20px;
+  background:var(--accent); color:var(--accent-ink); font-size:17px; font-weight:700;
+  cursor:pointer; box-shadow:var(--shadow);
+}
+.start-btn:hover{ filter:brightness(1.06); }
+.tip{ font-size:12.5px; color:var(--muted); text-align:center; margin-top:10px; }
+
+/* ---- Quiz screen ---- */
+.quizbar{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  margin-bottom:16px; flex-wrap:wrap;
+}
+.timer{
+  font-family:"IBM Plex Mono"; font-size:22px; font-weight:600; padding:6px 14px;
+  border-radius:8px; background:var(--surface-2); border:1px solid var(--line);
+}
+.timer.warn{ color:var(--bad); border-color:var(--bad); }
+.scoretag{ font-size:13px; color:var(--muted); }
+.progress-outer{ height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden; margin-bottom:20px; }
+.progress-inner{ height:100%; background:var(--accent); }
+
+.quiz-layout{ display:grid; grid-template-columns:1fr 220px; gap:18px; align-items:start; }
+@media (max-width:760px){ .quiz-layout{ grid-template-columns:1fr; } }
+
+.qcard{ padding:26px; }
+.qmeta{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.chip{
+  display:inline-block; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; color:#fff;
+}
+.qnum{ font-size:12.5px; color:var(--muted); font-family:"IBM Plex Mono"; }
+.qtext{ font-size:19px; line-height:1.5; margin:6px 0 20px; font-weight:500; }
+.options{ display:flex; flex-direction:column; gap:10px; }
+.opt{
+  text-align:left; padding:13px 16px; border-radius:10px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); cursor:pointer; font-size:15px; line-height:1.4;
+  display:flex; gap:10px;
+}
+.opt .k{ font-family:"IBM Plex Mono"; color:var(--muted); font-weight:600; }
+.opt:hover:not([disabled]){ border-color:var(--accent); }
+.opt[disabled]{ cursor:default; }
+.opt.correct{ background:var(--good-bg); border-color:var(--good); }
+.opt.wrong{ background:var(--bad-bg); border-color:var(--bad); }
+.explain{
+  margin-top:18px; padding:14px 16px; border-radius:10px; background:var(--surface-2);
+  border-left:3px solid var(--accent); font-size:14px; line-height:1.55; color:var(--ink-soft);
+  display:none;
+}
+.explain.show{ display:block; }
+.qfooter{ display:flex; justify-content:space-between; margin-top:22px; gap:10px; }
+.navbtn{
+  border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px;
+  padding:11px 18px; font-weight:600; cursor:pointer; font-size:14px;
+}
+.navbtn:hover{ border-color:var(--accent); }
+.navbtn.primary{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+.navbtn:disabled{ opacity:.4; cursor:not-allowed; }
+.navbtn.finish{ background:var(--warm); color:#1B1400; border-color:var(--warm); }
+
+.sidebar .card{ padding:16px; }
+.sidebar h3{ margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.palette{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+@media (max-width:760px){ .palette{ grid-template-columns:repeat(10,1fr); } }
+.pbtn{
+  aspect-ratio:1; border-radius:6px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink-soft); font-family:"IBM Plex Mono"; font-size:12px; cursor:pointer; padding:0;
+}
+.pbtn.current{ outline:2px solid var(--warm); outline-offset:1px; }
+.pbtn.correct{ background:var(--good); color:#fff; border-color:var(--good); }
+.pbtn.wrong{ background:var(--bad); color:#fff; border-color:var(--bad); }
+.legend-mini{ display:flex; flex-direction:column; gap:5px; margin-top:12px; font-size:12px; color:var(--muted); }
+.legend-mini span{ display:flex; align-items:center; gap:6px; }
+.sw{ width:10px; height:10px; border-radius:3px; display:inline-block; border:1px solid var(--line); }
+
+/* ---- Results screen ---- */
+.results-head{ text-align:center; padding:34px 20px 10px; }
+.results-head .big{ font-family:"IBM Plex Mono"; font-size:52px; font-weight:600; }
+.bucket-row{ display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--line); }
+.bucket-row:last-child{ border-bottom:none; }
+.bucket-name{ width:190px; font-weight:600; font-size:14px; flex-shrink:0; }
+.bucket-bar-outer{ flex:1; height:10px; background:var(--surface-2); border-radius:5px; overflow:hidden; }
+.bucket-bar-inner{ height:100%; }
+.bucket-score{ width:60px; text-align:right; font-family:"IBM Plex Mono"; font-size:13px; color:var(--muted); }
+.weak-note{ margin-top:18px; padding:14px 16px; border-radius:10px; background:var(--surface-2); border-left:3px solid var(--warm); font-size:14px; line-height:1.55; }
+.hidden{ display:none !important; }
+</style>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="kicker">ICT Police &middot; LDC &middot; CBT via Virtual University</span>
+      <h1>LDC CBT Drill</h1>
+    </div>
+    <div class="scoretag mono" id="liveScore"></div>
+  </div>
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="card">
+      <div class="intro-grid">
+        <div>
+          <p>This mirrors the real ICT Police LDC test: MCQs, <strong>no negative marking</strong>, roughly one hour. Since there's no penalty for guessing, attempt every question &mdash; never leave one blank tomorrow.</p>
+          <p>Real weightage skews toward <strong>Analytical Reasoning &amp; General Knowledge (45%)</strong>, not computer skills &mdash; despite this being a clerk post. English is 30%, Math 15%, Pakistan Studies and Islamiat 5% each. This drill is built to that ratio: 47 questions, each answered instantly with an explanation so you learn as you go.</p>
+          <div class="weight-bar">
+            <div style="width:45%; background:var(--accent)"></div>
+            <div style="width:30%; background:var(--warm)"></div>
+            <div style="width:15%; background:#6B8FBF"></div>
+            <div style="width:5%; background:#9A6BBF"></div>
+            <div style="width:5%; background:#BF6B9A"></div>
+          </div>
+          <div class="weight-legend">
+            <span><span class="dot" style="background:var(--accent)"></span>Reasoning &amp; GK 45%</span>
+            <span><span class="dot" style="background:var(--warm)"></span>English 30%</span>
+            <span><span class="dot" style="background:#6B8FBF"></span>Math 15%</span>
+            <span><span class="dot" style="background:#9A6BBF"></span>Pak Studies 5%</span>
+            <span><span class="dot" style="background:#BF6B9A"></span>Islamiat 5%</span>
+          </div>
+          <p class="source-note">Pattern cross-checked against 2026 LDC/UDC syllabus breakdowns (pastpaperspdf.com, uzailearning.com). Agencies can tweak the exact split test to test &mdash; treat this as your best working model, not a guarantee.</p>
+          <div class="stat-row">
+            <div class="stat"><div class="n">47</div><div class="l">Questions</div></div>
+            <div class="stat"><div class="n">60:00</div><div class="l">Clock</div></div>
+            <div class="stat"><div class="n">0</div><div class="l">Neg. marking</div></div>
+          </div>
+        </div>
+        <div>
+          <details class="refresher" open>
+            <summary>60-second refresher (open before you start)</summary>
+            <ul>
+              <li><strong>Reasoning traps:</strong> in series questions, check differences of differences before giving up (e.g. 2,6,12,20,30 &rarr; gaps 4,6,8,10).</li>
+              <li><strong>Syllogism:</strong> only trust what's forced by the given statements &mdash; not what sounds true from general knowledge.</li>
+              <li><strong>Computer:</strong> CPU = Central Processing Unit, RAM is volatile (wiped on power-off), F5 refreshes.</li>
+              <li><strong>English:</strong> "Neither/Either" takes a singular verb; watch subject-verb agreement traps.</li>
+              <li><strong>Math:</strong> speed = distance &divide; time (convert minutes to hours); discount original price = sale price &divide; (1 &minus; discount%).</li>
+              <li><strong>Pak Studies:</strong> Objectives Resolution &mdash; 1949; Balochistan is the largest province by area.</li>
+              <li><strong>Islamiat:</strong> 5 Pillars; Quran's revelation began in Ramadan; 1st Caliph = Hazrat Abu Bakr (RA).</li>
+              <li>Skip a hard one fast (mark it), finish the easy ones first &mdash; with no negative marking, coverage beats perfectionism.</li>
+            </ul>
+          </details>
+          <button class="start-btn" id="startBtn">Start the drill &rarr;</button>
+          <div class="tip">One question at a time &middot; instant answer + explanation &middot; jump anywhere via the palette</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="quizbar">
+      <div class="timer mono" id="timerDisplay">60:00</div>
+      <div class="progress-outer" style="flex:1; min-width:120px;"><div class="progress-inner" id="progressBar" style="width:0%"></div></div>
+      <div class="scoretag mono" id="quizScore">0 / 0 correct</div>
+    </div>
+    <div class="quiz-layout">
+      <div class="qcard card">
+        <div class="qmeta">
+          <span class="chip" id="qChip">GK</span>
+          <span class="qnum" id="qNum">Q1 / 47</span>
+        </div>
+        <div class="qtext" id="qText"></div>
+        <div class="options" id="qOptions"></div>
+        <div class="explain" id="qExplain"></div>
+        <div class="qfooter">
+          <button class="navbtn" id="prevBtn">&larr; Prev</button>
+          <button class="navbtn" id="markBtn">Mark for review</button>
+          <button class="navbtn primary" id="nextBtn">Next &rarr;</button>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="card">
+          <h3>Question map</h3>
+          <div class="palette" id="palette"></div>
+          <div class="legend-mini">
+            <span><span class="sw" style="background:var(--good)"></span>Correct</span>
+            <span><span class="sw" style="background:var(--bad)"></span>Wrong</span>
+            <span><span class="sw" style="background:var(--surface)"></span>Unanswered</span>
+          </div>
+          <button class="navbtn finish" style="width:100%; margin-top:14px;" id="finishBtn">Finish &amp; see results</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="hidden">
+    <div class="card">
+      <div class="results-head">
+        <div class="kicker" style="color:var(--warm); letter-spacing:.14em; text-transform:uppercase; font-size:12px; font-weight:600;">Drill complete</div>
+        <div class="big mono" id="finalScore">0 / 47</div>
+        <div id="finalPct" style="color:var(--muted); margin-top:4px;"></div>
+      </div>
+      <div id="bucketBreakdown" style="margin-top:10px;"></div>
+      <div class="weak-note" id="weakNote"></div>
+      <button class="start-btn" id="restartBtn" style="margin-top:22px;">Run it again (reshuffled)</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const BUCKETS = {
+  GK:   { label:'Reasoning & GK', color:'var(--accent)' },
+  ENG:  { label:'English',        color:'var(--warm)' },
+  MATH: { label:'Math',           color:'#6B8FBF' },
+  PAK:  { label:'Pak Studies',    color:'#9A6BBF' },
+  ISL:  { label:'Islamiat',       color:'#BF6B9A' }
+};
+
+const QUESTIONS = [
+// ---- GK / Analytical Reasoning / Computer / Science (20) ----
+{b:'GK', q:'Find the next number: 2, 6, 12, 20, 30, ?', o:['40','42','36','44'], c:1, e:'Gaps between terms: 4, 6, 8, 10 — each gap grows by 2. Next gap is 12, so 30 + 12 = 42.'},
+{b:'GK', q:'Find the next letter: A, C, F, J, O, ?', o:['S','T','U','R'], c:2, e:'Gaps grow by one each time: +2, +3, +4, +5, +6. O is the 15th letter; +6 lands on U (21st).'},
+{b:'GK', q:'Doctor is to Hospital as Teacher is to ?', o:['Book','School','Student','Lesson'], c:1, e:'A doctor works in a hospital; a teacher works in a school — same workplace relationship.'},
+{b:'GK', q:'Pick the odd one out: Mango, Apple, Potato, Banana', o:['Mango','Apple','Potato','Banana'], c:2, e:'Potato is a vegetable (a tuber); the other three are fruits.'},
+{b:'GK', q:'If CAT is coded as DBU, how is DOG coded (same rule)?', o:['EPH','ENH','EPI','FPH'], c:0, e:'Each letter is shifted forward by 1: C→D, A→B, T→U. Apply to DOG: D→E, O→P, G→H = EPH.'},
+{b:'GK', q:'Pointing to a photo, a man says: "She is the daughter of my grandfather\'s only son." If the man is not that son, how is she related to him?', o:['Mother','Sister','Aunt','Cousin'], c:1, e:'"My grandfather\'s only son" who isn\'t the speaker must be the speaker\'s father. His daughter is the speaker\'s sister.'},
+{b:'GK', q:'A man walks 5 km north, 3 km east, then 5 km south. How far is he from his starting point?', o:['3 km','5 km','8 km','13 km'], c:0, e:'The north and south legs cancel out (both 5 km). Only the 3 km east leg remains — he ends up 3 km from the start.'},
+{b:'GK', q:'All pens are books. All books are papers. Does it follow that all pens are papers?', o:['Yes, valid','No, invalid','Cannot be determined','Only some pens'], c:0, e:'This is a straightforward chain: pens⊂books⊂papers, so pens⊂papers. The conclusion follows logically, even though it\'s factually odd.'},
+{b:'GK', q:'Find the missing number: 3, 9, 27, 81, ?', o:['162','243','324','729'], c:1, e:'Each term is multiplied by 3: 81 × 3 = 243.'},
+{b:'GK', q:'Which is the largest planet in our solar system?', o:['Saturn','Earth','Jupiter','Neptune'], c:2, e:'Jupiter is the largest planet by both mass and diameter.'},
+{b:'GK', q:'In computing, what does CPU stand for?', o:['Central Processing Unit','Computer Personal Unit','Central Program Utility','Control Processing Unit'], c:0, e:'CPU = Central Processing Unit, the "brain" that executes instructions.'},
+{b:'GK', q:'Which function key typically refreshes a webpage in most browsers?', o:['F2','F5','F8','F11'], c:1, e:'F5 (or Ctrl+R) reloads the current page in virtually every browser.'},
+{b:'GK', q:'What is the default file extension for a modern Microsoft Word document?', o:['.doc','.txt','.docx','.pdf'], c:2, e:'.docx is the default format since Word 2007; .doc is the older legacy format.'},
+{b:'GK', q:'RAM (Random Access Memory) is best described as:', o:['Permanent storage that survives power loss','Volatile memory, cleared when power is off','A type of hard disk','Software, not hardware'], c:1, e:'RAM is volatile — its contents are lost the moment the device loses power, unlike a hard disk or SSD.'},
+{b:'GK', q:'Which gas do plants absorb from the air to carry out photosynthesis?', o:['Oxygen','Nitrogen','Carbon dioxide','Hydrogen'], c:2, e:'Plants take in carbon dioxide and release oxygen during photosynthesis.'},
+{b:'GK', q:'Normal average human body temperature is approximately:', o:['96.6°F','98.6°F','100.6°F','94.6°F'], c:1, e:'98.6°F (37°C) is the commonly cited average, though a normal range spans a bit either side.'},
+{b:'GK', q:'What is the capital of Pakistan?', o:['Karachi','Lahore','Islamabad','Rawalpindi'], c:2, e:'Islamabad became the capital in 1967, replacing Karachi.'},
+{b:'GK', q:'The currency of Saudi Arabia is the:', o:['Dinar','Riyal','Dirham','Rupee'], c:1, e:'Saudi Arabia\'s currency is the Riyal.'},
+{b:'GK', q:'Which is the longest river in the world?', o:['Amazon','Nile','Yangtze','Indus'], c:1, e:'The Nile, at roughly 6,650 km, is generally cited as the longest (the Amazon is a close, sometimes-disputed second).'},
+{b:'GK', q:'Which organization\'s headquarters is in Geneva, Switzerland?', o:['United Nations HQ','World Health Organization','World Bank','IMF'], c:1, e:'WHO (World Health Organization) is headquartered in Geneva. The UN\'s main HQ is in New York.'},
+
+// ---- English (14) ----
+{b:'ENG', q:'Choose the closest synonym for "Abundant":', o:['Scarce','Plentiful','Tiny','Broken'], c:1, e:'"Abundant" means existing in large quantities — "plentiful" is the closest match.'},
+{b:'ENG', q:'Choose the best antonym for "Benevolent":', o:['Kind','Generous','Malevolent','Gentle'], c:2, e:'"Benevolent" means kind/well-meaning; its opposite is "malevolent" (ill-intentioned).'},
+{b:'ENG', q:'Fill in the blank: "He is good ___ mathematics."', o:['in','at','on','with'], c:1, e:'The fixed preposition phrase is "good at (a subject/skill)."'},
+{b:'ENG', q:'Which sentence is grammatically correct?', o:['Neither of the boys have done their homework.','Neither of the boys has done his homework.','Neither of the boys are doing homework.','Neither of the boy has done homework.'], c:1, e:'"Neither" is singular, so it takes a singular verb ("has") and singular pronoun ("his").'},
+{b:'ENG', q:'A person who can speak many languages is called a:', o:['Linguist','Polyglot','Philologist','Bilingual'], c:1, e:'"Polyglot" specifically means someone who speaks several languages. ("Linguist" studies language, which isn\'t quite the same thing.)'},
+{b:'ENG', q:'The idiom "to beat around the bush" means:', o:['To work very hard','To avoid getting to the point','To search thoroughly','To celebrate a win'], c:1, e:'It means talking around a topic instead of addressing it directly.'},
+{b:'ENG', q:'Spot the error: "She don\'t like tea."', o:['She','don\'t','like','tea'], c:1, e:'With "she" (third person singular), the correct form is "doesn\'t," not "don\'t."'},
+{b:'ENG', q:'Which spelling is correct?', o:['Accomodate','Acommodate','Accommodate','Accomadate'], c:2, e:'"Accommodate" has a double C and a double M — a commonly misspelled word.'},
+{b:'ENG', q:'Fill in the blank: "He is afraid ___ dogs."', o:['from','of','at','with'], c:1, e:'The standard construction is "afraid of (something)."'},
+{b:'ENG', q:'Fill in the blank: "By the time he arrived, the meeting ___."', o:['already starts','had already started','has already started','was already starting'], c:1, e:'A past action completed before another past action uses the past perfect: "had already started."'},
+{b:'ENG', q:'Convert to passive voice: "The teacher taught the lesson."', o:['The lesson taught the teacher.','The lesson was taught by the teacher.','The lesson is taught by the teacher.','The teacher was taught the lesson.'], c:1, e:'Passive voice: object becomes subject + "was/were" + past participle + "by" + original subject.'},
+{b:'ENG', q:'What is the plural of "Phenomenon"?', o:['Phenomenons','Phenomena','Phenomenas','Phenomenae'], c:1, e:'"Phenomenon" is a Greek-derived word; its irregular plural is "phenomena."'},
+{b:'ENG', q:'Choose the closest synonym for "Candid":', o:['Secretive','Frank','Angry','Colorful'], c:1, e:'"Candid" means open and honest in expression — closest to "frank."'},
+{b:'ENG', q:'Choose the sentence with correct subject-verb agreement:', o:['The list of items are on the table.','The list of items is on the table.','The list of items were on the table.','The list of items being on the table.'], c:1, e:'The subject is "list" (singular), not "items" — so the verb must be "is."'},
+
+// ---- Math (7) ----
+{b:'MATH', q:'What is 15% of 200?', o:['20','25','30','35'], c:2, e:'15% of 200 = (15/100) × 200 = 30.'},
+{b:'MATH', q:'A shirt costs Rs. 800 after a 20% discount. What was its original price?', o:['Rs. 900','Rs. 960','Rs. 1000','Rs. 1050'], c:2, e:'If Rs. 800 is 80% of the original price: original = 800 ÷ 0.8 = Rs. 1000.'},
+{b:'MATH', q:'Simplify the ratio 24 : 36.', o:['2 : 3','3 : 4','4 : 5','1 : 2'], c:0, e:'Divide both sides by their GCD, 12: 24÷12=2, 36÷12=3 → 2:3.'},
+{b:'MATH', q:'What is the average of 10, 20, 30, and 40?', o:['20','22.5','25','30'], c:2, e:'Sum = 100, divided by 4 numbers = 25.'},
+{b:'MATH', q:'A train travels 60 km in 45 minutes. What is its speed in km/h?', o:['60 km/h','70 km/h','75 km/h','80 km/h'], c:3, e:'45 minutes = 0.75 hours. Speed = distance ÷ time = 60 ÷ 0.75 = 80 km/h.'},
+{b:'MATH', q:'What is the simple interest on Rs. 5000 at 10% per annum for 2 years?', o:['Rs. 500','Rs. 1000','Rs. 1500','Rs. 5500'], c:1, e:'Simple Interest = (Principal × Rate × Time) / 100 = (5000 × 10 × 2) / 100 = Rs. 1000.'},
+{b:'MATH', q:'What is the probability of getting heads on a single toss of a fair coin?', o:['1/4','1/3','1/2','1'], c:2, e:'A fair coin has 2 equally likely outcomes; 1 favorable outcome ÷ 2 total = 1/2.'},
+
+// ---- Pakistan Studies (3) ----
+{b:'PAK', q:'Who is known as the founder of Pakistan?', o:['Allama Iqbal','Liaquat Ali Khan','Muhammad Ali Jinnah','Sir Syed Ahmed Khan'], c:2, e:'Muhammad Ali Jinnah, "Quaid-e-Azam," led the movement that resulted in Pakistan\'s creation in 1947.'},
+{b:'PAK', q:'In which year was the Objectives Resolution passed by Pakistan\'s Constituent Assembly?', o:['1947','1949','1956','1973'], c:1, e:'The Objectives Resolution was passed on 12 March 1949, later becoming a preamble to Pakistan\'s constitutions.'},
+{b:'PAK', q:'Which is the largest province of Pakistan by land area?', o:['Punjab','Sindh','Khyber Pakhtunkhwa','Balochistan'], c:3, e:'Balochistan covers about 44% of Pakistan\'s total land area, making it the largest by area (though not by population).'},
+
+// ---- Islamiat (3) ----
+{b:'ISL', q:'How many Pillars of Islam are there?', o:['Four','Five','Six','Seven'], c:1, e:'The Five Pillars: Shahada, Salah, Zakat, Sawm, and Hajj.'},
+{b:'ISL', q:'The revelation of the Quran began in which Islamic month?', o:['Muharram','Shaban','Ramadan','Shawwal'], c:2, e:'The first verses were revealed to Prophet Muhammad (PBUH) in the month of Ramadan, on Laylat al-Qadr.'},
+{b:'ISL', q:'Who was the first Caliph of Islam after the Prophet\'s (PBUH) death?', o:['Hazrat Umar (RA)','Hazrat Abu Bakr (RA)','Hazrat Uthman (RA)','Hazrat Ali (RA)'], c:1, e:'Hazrat Abu Bakr Siddiq (RA) was chosen as the first Caliph (Khalifa) in 632 CE.'}
+];
+
+let order = QUESTIONS.map((_,i)=>i);
+let idx = 0;
+let answers = {};      // qIndex -> chosen option index
+let marked = {};       // qIndex -> true
+let timeLeft = 3600;
+let timerId = null;
+
+const $ = (id)=>document.getElementById(id);
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startQuiz(){
+  $('intro').classList.add('hidden');
+  $('quiz').classList.remove('hidden');
+  buildPalette();
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerId);
+  timeLeft = 3600;
+  updateTimerDisplay();
+  timerId = setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft<=0){ clearInterval(timerId); finishQuiz(); }
+  },1000);
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(timeLeft/60), s = timeLeft%60;
+  const el = $('timerDisplay');
+  el.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.classList.toggle('warn', timeLeft <= 300);
+}
+
+function buildPalette(){
+  const pal = $('palette');
+  pal.innerHTML = '';
+  order.forEach((qi,pos)=>{
+    const btn = document.createElement('button');
+    btn.className = 'pbtn';
+    btn.textContent = pos+1;
+    btn.dataset.pos = pos;
+    btn.addEventListener('click', ()=>{ idx = pos; renderQuestion(); });
+    pal.appendChild(btn);
+  });
+}
+
+function refreshPalette(){
+  document.querySelectorAll('.pbtn').forEach(btn=>{
+    const pos = Number(btn.dataset.pos);
+    const qi = order[pos];
+    btn.classList.remove('current','correct','wrong');
+    if(pos===idx) btn.classList.add('current');
+    if(answers[qi]!==undefined){
+      const q = QUESTIONS[qi];
+      btn.classList.add(answers[qi]===q.c ? 'correct' : 'wrong');
+    }
+  });
+}
+
+function renderQuestion(){
+  const qi = order[idx];
+  const q = QUESTIONS[qi];
+  const chip = $('qChip');
+  chip.textContent = BUCKETS[q.b].label;
+  chip.style.background = BUCKETS[q.b].color;
+  $('qNum').textContent = 'Q'+(idx+1)+' / '+order.length;
+  $('qText').textContent = q.q;
+
+  const opts = $('qOptions');
+  opts.innerHTML = '';
+  const already = answers[qi];
+  q.o.forEach((optText,oi)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = '<span class="k">'+String.fromCharCode(65+oi)+'.</span><span>'+optText+'</span>';
+    if(already!==undefined){
+      b.disabled = true;
+      if(oi===q.c) b.classList.add('correct');
+      else if(oi===already) b.classList.add('wrong');
+    }
+    b.addEventListener('click', ()=>{
+      if(answers[qi]!==undefined) return;
+      answers[qi] = oi;
+      renderQuestion();
+      refreshPalette();
+      updateScoreTags();
+    });
+    opts.appendChild(b);
+  });
+
+  const ex = $('qExplain');
+  if(already!==undefined){
+    ex.textContent = (already===q.c ? 'Correct. ' : 'Not quite. ') + q.e;
+    ex.classList.add('show');
+  } else {
+    ex.classList.remove('show');
+    ex.textContent = '';
+  }
+
+  $('prevBtn').disabled = idx===0;
+  $('nextBtn').textContent = idx===order.length-1 ? 'Review palette →' : 'Next →';
+  $('markBtn').textContent = marked[qi] ? 'Unmark review' : 'Mark for review';
+  $('progressBar').style.width = Math.round(((idx+1)/order.length)*100)+'%';
+  refreshPalette();
+  updateScoreTags();
+}
+
+function updateScoreTags(){
+  const answered = Object.keys(answers).length;
+  const correct = Object.values(answers).filter((v,i)=>false).length; // placeholder, recompute below
+  let correctCount = 0;
+  for(const k in answers){ if(answers[k]===QUESTIONS[k].c) correctCount++; }
+  $('quizScore').textContent = correctCount+' / '+answered+' correct so far';
+  $('liveScore').textContent = answered+'/'+order.length+' answered';
+}
+
+$('startBtn').addEventListener('click', startQuiz);
+
+$('prevBtn').addEventListener('click', ()=>{ if(idx>0){ idx--; renderQuestion(); } });
+$('nextBtn').addEventListener('click', ()=>{ if(idx<order.length-1){ idx++; renderQuestion(); } });
+$('markBtn').addEventListener('click', ()=>{
+  const qi = order[idx];
+  marked[qi] = !marked[qi];
+  renderQuestion();
+});
+$('finishBtn').addEventListener('click', finishQuiz);
+
+function finishQuiz(){
+  clearInterval(timerId);
+  $('quiz').classList.add('hidden');
+  $('results').classList.remove('hidden');
+
+  let total=0, correct=0;
+  const bucketStats = {};
+  Object.keys(BUCKETS).forEach(k=>bucketStats[k]={total:0,correct:0});
+  QUESTIONS.forEach((q,qi)=>{
+    total++;
+    bucketStats[q.b].total++;
+    if(answers[qi]!==undefined && answers[qi]===q.c){ correct++; bucketStats[q.b].correct++; }
+  });
+
+  $('finalScore').textContent = correct+' / '+total;
+  $('finalPct').textContent = Math.round((correct/total)*100)+'% overall';
+
+  const bd = $('bucketBreakdown');
+  bd.innerHTML = '';
+  const weakBuckets = [];
+  Object.keys(BUCKETS).forEach(k=>{
+    const s = bucketStats[k];
+    const pct = s.total ? Math.round((s.correct/s.total)*100) : 0;
+    if(pct < 60) weakBuckets.push(BUCKETS[k].label);
+    const row = document.createElement('div');
+    row.className = 'bucket-row';
+    row.innerHTML = '<div class="bucket-name">'+BUCKETS[k].label+'</div>'+
+      '<div class="bucket-bar-outer"><div class="bucket-bar-inner" style="width:'+pct+'%; background:'+BUCKETS[k].color+'"></div></div>'+
+      '<div class="bucket-score mono">'+s.correct+'/'+s.total+'</div>';
+    bd.appendChild(row);
+  });
+
+  const wn = $('weakNote');
+  if(weakBuckets.length){
+    wn.textContent = 'Spend your remaining time on: ' + weakBuckets.join(', ') + ' — that\'s where the score is leaking.';
+  } else {
+    wn.textContent = 'Solid spread across every section. Do one more timed pass to build speed, then rest before the test.';
+  }
+}
+
+$('restartBtn').addEventListener('click', ()=>{
+  order = shuffle(QUESTIONS.map((_,i)=>i));
+  idx = 0; answers = {}; marked = {};
+  $('results').classList.add('hidden');
+  $('intro').classList.remove('hidden');
+});
+</script>
